@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+   database-postgres:
+      image: postgres:latest
+      ports:
+         - "5432:5432"
+      restart: always
+      environment:
+         POSTGRES_PASSWORD: 123
+         POSTGRES_USER: username
+         POSTGRES_DB: test
+
+   database-mongo:
+      image: mongo:latest
+      ports:
+         - "27017:27017"
+      logging:
+         driver: none
