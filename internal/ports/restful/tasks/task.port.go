@@ -2,6 +2,7 @@ package portsRestFulTask
 
 import (
 	"net/http"
+	"time"
 	"togo/internal/core/domain"
 	serviceTasks "togo/internal/core/services/tasks"
 	portsRestFul "togo/internal/ports/restful"
@@ -30,7 +31,22 @@ func CreateTask(c *gin.Context) {
 	var task domain.STask
 	c.BindJSON(&task)
 
-	newTask, err := serviceTasks.CreateTask(task)
+	checkTask := &task
+	now := time.Now()
+	currentYear, currentMonth, currentDay := now.Date()
+	currentLocation := now.Location()
+
+	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
+
+	if checkTask.Name == "" || checkTask.UserID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  http.StatusBadRequest,
+			"message": "Name or user_id must not empty",
+		})
+		return
+	}
+
+	newTask, err := serviceTasks.CreateTask(&task)
 
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
@@ -63,29 +79,11 @@ func GetSingleTask(c *gin.Context) {
 
 }
 
-func EditTask(c *gin.Context) {
-	taskId := c.Param("taskId")
-	var task domain.STask
-	c.BindJSON(&task)
-	// completed := task.Completed
-
-	err := serviceTasks.EditTask(taskId, task)
-
-	if err != nil {
-		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"status":  200,
-		"message": "Task Edited Successfully",
-	})
-
-}
-
 func DeleteTask(c *gin.Context) {
 	taskId := c.Param("taskId")
-	task := &domain.STask{ID: taskId}
+	userId := c.Param("userId")
+
+	task := &domain.STask{ID: taskId, UserID: userId}
 
 	err := serviceTasks.DeleteTask(task)
 

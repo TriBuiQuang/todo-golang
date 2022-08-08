@@ -25,10 +25,9 @@ func Routes(router *gin.Engine) {
 
 	// Tasks routes
 	router.GET("/api/tasks", portsRestFulTask.GetAllTasks)
-	router.POST("/api/task", portsRestFulTask.CreateUser)
-	router.GET("/api/task/:taskId", portsRestFulTask.GetSingleUser)
-	router.PUT("/api/task/:taskId", portsRestFulTask.EditUser)
-	router.DELETE("/api/task/:taskId", portsRestFulTask.DeleteUser)
+	router.POST("/api/task", portsRestFulTask.CreateTask)
+	router.GET("/api/task/:taskId", portsRestFulTask.GetSingleTask)
+	router.DELETE("/api/task/:userId/:taskId", portsRestFulTask.DeleteTask)
 
 	// Example routes
 	// router.GET("/albums", servicesAlbums.GetAlbums)

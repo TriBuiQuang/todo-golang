@@ -17,7 +17,7 @@ func GetAllTasks() ([]domain.STask, int, error) {
 }
 
 // Bushiness for create new task
-func CreateTask(task domain.STask) (domain.STask, error) {
+func CreateTask(task *domain.STask) (domain.STask, error) {
 
 	return adapterPostgresRepo.TaskQueryCreateData(task)
 }
@@ -25,11 +25,6 @@ func CreateTask(task domain.STask) (domain.STask, error) {
 func GetSingleTask(task *domain.STask) error {
 
 	return adapterPostgresRepo.TaskQueryGetSingleData(task)
-}
-
-func EditTask(taskId string, task domain.STask) error {
-
-	return adapterPostgresRepo.TaskQueryEditData(taskId, task)
 }
 
 func DeleteTask(task *domain.STask) error {

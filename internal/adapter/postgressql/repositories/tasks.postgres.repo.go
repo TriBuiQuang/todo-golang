@@ -43,8 +43,24 @@ func TaskQueryGetAllData(tasks *[]domain.STask) (int, error) {
 
 // Insert new task data to database
 func TaskQueryCreateData(task *domain.STask) (domain.STask, error) {
+	var oldTask []domain.STask
 	id := guuid.New().String()
 	now := time.Now()
+
+	currentYear, currentMonth, currentDay := now.Date()
+	currentLocation := now.Location()
+
+	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
+
+	oldTaskErr := PostgresConnect.Model(&oldTask).Where("user_id = ?", task.UserID).Where("created_at >= ?", beginningOfDay).Select()
+	if oldTaskErr != nil {
+		return domain.STask{}, oldTaskErr
+	}
+
+	userErr := PostgresConnect.Model(&oldTask).Where("user_id = ?", task.UserID).Where("created_at >= ?", beginningOfDay).Select()
+	if userErr != nil {
+		return domain.STask{}, userErr
+	}
 
 	newData := domain.STask{
 		ID:        id,
@@ -62,13 +78,6 @@ func TaskQueryCreateData(task *domain.STask) (domain.STask, error) {
 // Query get single task's data by ID in the database
 func TaskQueryGetSingleData(task *domain.STask) error {
 	err := PostgresConnect.Select(task)
-
-	return err
-}
-
-// Query get all task's data in the database
-func TaskQueryEditData(task *domain.STask) error {
-	_, err := PostgresConnect.Model(&domain.STask{}).Set("name = ?", task.Name, "updated_at = ?", time.Now()).Where("user_id = ?", task.UserID).Where("id = ?", task.ID).Update()
 
 	return err
 }
