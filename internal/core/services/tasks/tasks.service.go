@@ -12,34 +12,38 @@ import (
 type TaskService struct {
 	TaskRepo interface {
 		GetAllTasks() ([]domain.STask, int, error)
+		CreateTask() (domain.STask, error)
+		GetSingleTask() error
+		DeleteTask() error
 	}
+	// Handle more than 1 data
+	Tasks *[]domain.STask
+	// Handle only 1 data
+	Task *domain.STask
 }
 
 func (service *TaskService) GetAllTasks() ([]domain.STask, int, error) {
-	var tasks []domain.STask
 
 	repo := &adapterPostgresRepo.STaskRepo{
-		Tasks: &tasks,
+		Tasks: &[]domain.STask{},
 	}
 
 	count, err := repo.TaskQueryGetAllData()
 
-	return tasks, count, err
-}
-
-// Bushiness for get all task
-func GetAllTasks() ([]domain.STask, int, error) {
-	var tasks []domain.STask
-
-	count, err := adapterPostgresRepo.TaskQueryGetAllData(&tasks)
-
-	return tasks, count, err
+	return *repo.Tasks, count, err
 }
 
 // Bushiness for create new task
-func CreateTask(task *domain.STask) (domain.STask, error) {
+func (service *TaskService) CreateTask() (domain.STask, error) {
 	var oldTask []domain.STask
-	currentUser := &domain.SUser{ID: task.UserID}
+
+	repo := &adapterPostgresRepo.STaskRepo{
+		Task: &domain.STask{},
+	}
+	repoUser := &adapterPostgresRepo.SUserRepo{
+		User: &domain.SUser{ID: service.Task.UserID},
+	}
+
 	now := time.Now()
 
 	currentYear, currentMonth, currentDay := now.Date()
@@ -47,30 +51,30 @@ func CreateTask(task *domain.STask) (domain.STask, error) {
 
 	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
 
-	userErr := adapterPostgresRepo.UserQueryGetSingleData(currentUser)
+	userErr := repoUser.UserQueryGetSingleData()
 	if userErr != nil {
 		return domain.STask{}, userErr
 	}
 
-	totalTodayTask, oldTaskErr := adapterPostgresRepo.GetAllTaskToday(&oldTask, task.UserID, beginningOfDay)
+	totalTodayTask, oldTaskErr := adapterPostgresRepo.GetAllTaskToday(&oldTask, repo.Task.UserID, beginningOfDay)
 
 	if oldTaskErr != nil {
 		return domain.STask{}, oldTaskErr
 	}
 
-	if totalTodayTask != 0 && totalTodayTask >= currentUser.Limit {
-		return *task, errors.New("this user is out of the limit in order to create a new task. ")
+	if totalTodayTask != 0 && totalTodayTask >= repoUser.User.Limit {
+		return *repo.Task, errors.New("this user is out of the limit in order to create a new task. ")
 	}
 
-	return adapterPostgresRepo.TaskQueryCreateData(task)
+	return adapterPostgresRepo.TaskQueryCreateData(repo.Task)
 }
 
-func GetSingleTask(task *domain.STask) error {
+func (service *TaskService) GetSingleTask() error {
 
-	return adapterPostgresRepo.TaskQueryGetSingleData(task)
+	return adapterPostgresRepo.TaskQueryGetSingleData(service.Task)
 }
 
-func DeleteTask(task *domain.STask) error {
+func (service *TaskService) DeleteTask() error {
 
-	return adapterPostgresRepo.TaskQueryDeleteData(task)
+	return adapterPostgresRepo.TaskQueryDeleteData(service.Task)
 }

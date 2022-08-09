@@ -9,9 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type TaskPort struct {
+type STaskPort struct {
 	TaskService interface {
-		GetAllTasks() ([]domain.STask, int, error)
+		GetAllTasks(c *gin.Context)
+		CreateTask(c *gin.Context)
+		GetSingleTask(c *gin.Context)
+		DeleteTask(c *gin.Context)
 	}
 }
 
@@ -35,20 +38,15 @@ func GetAllTasks(c *gin.Context) {
 }
 
 func CreateTask(c *gin.Context) {
-	var task domain.STask
-	c.BindJSON(&task)
+	service := &serviceTasks.TaskService{}
+	c.BindJSON(service.Task)
 
-	checkTask := &task
-
-	if checkTask.Name == "" || checkTask.UserID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  http.StatusBadRequest,
-			"message": "Name or user_id must not empty",
-		})
+	if portsRestFul.ValidateCreateTask(c, service.Task) {
 		return
 	}
 
-	newTask, err := serviceTasks.CreateTask(&task)
+	newTask, err := service.CreateTask()
+	// newTask, err := serviceTasks.CreateTask(service.Task)
 
 	if err != nil {
 		if err.Error() == "this user is out of the limit in order to create a new task. " {
@@ -69,9 +67,10 @@ func CreateTask(c *gin.Context) {
 
 func GetSingleTask(c *gin.Context) {
 	taskId := c.Param("taskId")
-	task := &domain.STask{ID: taskId}
-
-	err := serviceTasks.GetSingleTask(task)
+	service := &serviceTasks.TaskService{
+		Task: &domain.STask{ID: taskId},
+	}
+	err := service.GetSingleTask()
 
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusNotFound))
@@ -81,7 +80,7 @@ func GetSingleTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Single Task",
-		"data":    task,
+		"data":    service.Task,
 	})
 
 }
@@ -90,9 +89,11 @@ func DeleteTask(c *gin.Context) {
 	taskId := c.Param("taskId")
 	userId := c.Param("userId")
 
-	task := &domain.STask{ID: taskId, UserID: userId}
+	service := &serviceTasks.TaskService{
+		Task: &domain.STask{ID: taskId, UserID: userId},
+	}
 
-	err := serviceTasks.DeleteTask(task)
+	err := service.DeleteTask()
 
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))

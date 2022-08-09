@@ -5,32 +5,55 @@ import (
 	"togo/internal/core/domain"
 )
 
+type UserService struct {
+	UserRepo interface {
+		GetAllUsers() ([]domain.SUser, int, error)
+		CreateUser() (domain.SUser, error)
+		GetSingleUser() error
+		DeleteUser() error
+	}
+	// Handle more than 1 data
+	Users *[]domain.SUser
+	// Handle only 1 data
+	User *domain.SUser
+}
+
 // Bushiness for get all user
-func GetAllUsers() ([]domain.SUser, int, error) {
-	var users []domain.SUser
+func (service *UserService) GetAllUsers() ([]domain.SUser, int, error) {
+	repo := &adapterPostgresRepo.SUserRepo{
+		Users: &[]domain.SUser{},
+	}
+	count, err := repo.UserQueryGetAllData()
 
-	count, err := adapterPostgresRepo.UserQueryGetAllData(&users)
-
-	return users, count, err
+	return *repo.Users, count, err
 }
 
 // Bushiness for create new user
-func CreateUser(user domain.SUser) (domain.SUser, error) {
+func (service *UserService) CreateUser() (domain.SUser, error) {
+	repo := &adapterPostgresRepo.SUserRepo{
+		User: service.User,
+	}
 
-	return adapterPostgresRepo.UserQueryCreateData(user.Username, user.Limit)
+	return repo.UserQueryCreateData()
 }
 
-func GetSingleUser(user *domain.SUser) error {
-
-	return adapterPostgresRepo.UserQueryGetSingleData(user)
+func (service *UserService) GetSingleUser() error {
+	repo := &adapterPostgresRepo.SUserRepo{
+		User: service.User,
+	}
+	return repo.UserQueryGetSingleData()
 }
 
-func EditUser(userId string, user domain.SUser) error {
-
-	return adapterPostgresRepo.UserQueryEditData(userId, user)
+func (service *UserService) EditUser() error {
+	repo := &adapterPostgresRepo.SUserRepo{
+		User: service.User,
+	}
+	return repo.UserQueryEditData()
 }
 
-func DeleteUser(user *domain.SUser) error {
-
-	return adapterPostgresRepo.UserQueryDeleteData(user)
+func (service *UserService) DeleteUser() error {
+	repo := &adapterPostgresRepo.SUserRepo{
+		User: service.User,
+	}
+	return repo.UserQueryDeleteData()
 }

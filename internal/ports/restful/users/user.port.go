@@ -9,8 +9,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type SUserPort struct {
+	UserInterface interface {
+		GetAllUsers(c *gin.Context)
+		CreateUser(c *gin.Context)
+		GetSingleUser(c *gin.Context)
+		EditUser(c *gin.Context)
+		DeleteUser(c *gin.Context)
+	}
+}
+
 func GetAllUsers(c *gin.Context) {
-	users, totalUsers, err := serviceUsers.GetAllUsers()
+	service := &serviceUsers.UserService{}
+
+	users, totalUsers, err := service.GetAllUsers()
 
 	if err != nil {
 
@@ -27,10 +39,12 @@ func GetAllUsers(c *gin.Context) {
 }
 
 func CreateUser(c *gin.Context) {
-	var user domain.SUser
-	c.BindJSON(&user)
+	service := &serviceUsers.UserService{
+		User: &domain.SUser{},
+	}
+	c.BindJSON(&service.User)
 
-	newUser, err := serviceUsers.CreateUser(user)
+	newUser, err := service.CreateUser()
 
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
@@ -46,9 +60,11 @@ func CreateUser(c *gin.Context) {
 
 func GetSingleUser(c *gin.Context) {
 	userId := c.Param("userId")
-	user := &domain.SUser{ID: userId}
+	service := &serviceUsers.UserService{
+		User: &domain.SUser{ID: userId},
+	}
 
-	err := serviceUsers.GetSingleUser(user)
+	err := service.GetSingleUser()
 
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusNotFound))
@@ -58,18 +74,20 @@ func GetSingleUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Single User",
-		"data":    user,
+		"data":    service.User,
 	})
 
 }
 
 func EditUser(c *gin.Context) {
 	userId := c.Param("userId")
-	var user domain.SUser
-	c.BindJSON(&user)
+	service := &serviceUsers.UserService{
+		User: &domain.SUser{ID: userId},
+	}
+	c.BindJSON(&service.User)
 	// completed := user.Completed
 
-	err := serviceUsers.EditUser(userId, user)
+	err := service.EditUser()
 
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
@@ -85,9 +103,11 @@ func EditUser(c *gin.Context) {
 
 func DeleteUser(c *gin.Context) {
 	userId := c.Param("userId")
-	user := &domain.SUser{ID: userId}
 
-	err := serviceUsers.DeleteUser(user)
+	service := &serviceUsers.UserService{
+		User: &domain.SUser{ID: userId},
+	}
+	err := service.DeleteUser()
 
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
