@@ -41,26 +41,15 @@ func TaskQueryGetAllData(tasks *[]domain.STask) (int, error) {
 	return PostgresConnect.Model(tasks).SelectAndCount()
 }
 
+func GetAllTaskToday(tasks *[]domain.STask, userId string, beginningOfDay time.Time) (int, error) {
+
+	return PostgresConnect.Model(tasks).Where("user_id = ?", userId).Where("created_at >= ?", beginningOfDay).SelectAndCount()
+}
+
 // Insert new task data to database
 func TaskQueryCreateData(task *domain.STask) (domain.STask, error) {
-	var oldTask []domain.STask
 	id := guuid.New().String()
 	now := time.Now()
-
-	currentYear, currentMonth, currentDay := now.Date()
-	currentLocation := now.Location()
-
-	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
-
-	oldTaskErr := PostgresConnect.Model(&oldTask).Where("user_id = ?", task.UserID).Where("created_at >= ?", beginningOfDay).Select()
-	if oldTaskErr != nil {
-		return domain.STask{}, oldTaskErr
-	}
-
-	userErr := PostgresConnect.Model(&oldTask).Where("user_id = ?", task.UserID).Where("created_at >= ?", beginningOfDay).Select()
-	if userErr != nil {
-		return domain.STask{}, userErr
-	}
 
 	newData := domain.STask{
 		ID:        id,

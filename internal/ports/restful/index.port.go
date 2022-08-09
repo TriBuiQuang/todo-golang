@@ -45,17 +45,17 @@ func PrintErrResponse(err error, httpStatus int) (int, map[string]any) {
 	log.Printf("Error - Reason: %v\n", err)
 	switch errStatusCode {
 	case 100:
-		errMessage = "Information - Something went wrong"
+		errMessage = "Information - " + err.Error()
 	case 200:
-		errMessage = "Success - Something went wrong"
+		errMessage = "Success - " + err.Error()
 	case 300:
-		errMessage = "Redirection - Something went wrong"
+		errMessage = "Redirection - " + err.Error()
 	case 400:
-		errMessage = "Client error - Something went wrong"
+		errMessage = "Client error - " + err.Error()
 	case 500:
-		errMessage = "Server Error - Something went wrong"
+		errMessage = "Server Error - " + err.Error()
 	default:
-		errMessage = "Don't have this status code- everything good"
+		errMessage = "Don't have this status code- everything good" + err.Error()
 	}
 
 	errResponse := map[string]any{

@@ -2,7 +2,6 @@ package portsRestFulTask
 
 import (
 	"net/http"
-	"time"
 	"togo/internal/core/domain"
 	serviceTasks "togo/internal/core/services/tasks"
 	portsRestFul "togo/internal/ports/restful"
@@ -32,11 +31,6 @@ func CreateTask(c *gin.Context) {
 	c.BindJSON(&task)
 
 	checkTask := &task
-	now := time.Now()
-	currentYear, currentMonth, currentDay := now.Date()
-	currentLocation := now.Location()
-
-	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
 
 	if checkTask.Name == "" || checkTask.UserID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -49,7 +43,12 @@ func CreateTask(c *gin.Context) {
 	newTask, err := serviceTasks.CreateTask(&task)
 
 	if err != nil {
-		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+		if err.Error() == "this user is out of the limit in order to create a new task. " {
+			c.JSON(portsRestFul.PrintErrResponse(err, http.StatusBadRequest))
+		} else {
+			c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+		}
+
 		return
 	}
 

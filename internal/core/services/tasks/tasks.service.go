@@ -3,6 +3,8 @@ package serviceTasks
 // func CreateNewTask
 
 import (
+	"errors"
+	"time"
 	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
 	"togo/internal/core/domain"
 )
@@ -18,6 +20,29 @@ func GetAllTasks() ([]domain.STask, int, error) {
 
 // Bushiness for create new task
 func CreateTask(task *domain.STask) (domain.STask, error) {
+	var oldTask []domain.STask
+	currentUser := &domain.SUser{ID: task.UserID}
+	now := time.Now()
+
+	currentYear, currentMonth, currentDay := now.Date()
+	currentLocation := now.Location()
+
+	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
+
+	userErr := adapterPostgresRepo.UserQueryGetSingleData(currentUser)
+	if userErr != nil {
+		return domain.STask{}, userErr
+	}
+
+	totalTodayTask, oldTaskErr := adapterPostgresRepo.GetAllTaskToday(&oldTask, task.UserID, beginningOfDay)
+
+	if oldTaskErr != nil {
+		return domain.STask{}, oldTaskErr
+	}
+
+	if totalTodayTask != 0 && totalTodayTask >= currentUser.Limit {
+		return *task, errors.New("this user is out of the limit in order to create a new task. ")
+	}
 
 	return adapterPostgresRepo.TaskQueryCreateData(task)
 }
