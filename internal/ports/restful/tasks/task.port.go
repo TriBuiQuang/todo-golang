@@ -9,8 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type TaskPort struct {
+	TaskService interface {
+		GetAllTasks() ([]domain.STask, int, error)
+	}
+}
+
 func GetAllTasks(c *gin.Context) {
-	tasks, totalTasks, err := serviceTasks.GetAllTasks()
+	service := &serviceTasks.TaskService{}
+
+	tasks, totalTasks, err := service.GetAllTasks()
 
 	if err != nil {
 

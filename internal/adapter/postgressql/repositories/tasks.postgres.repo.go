@@ -11,14 +11,11 @@ import (
 	guuid "github.com/google/uuid"
 )
 
-// Giao tiep voi db (nhu may cau insert)
-
-// INITIALIZE DB CONNECTION (TO AVOID TOO MANY CONNECTION)
-// var dbConnect *pg.DB
-
-// func InitiateDB(db *pg.DB) {
-// 	dbConnect = db
-// }
+type STaskRepo struct {
+	TaskInterface interface {
+		TaskQueryGetAllData() (int, error)
+	}
+}
 
 // Create User Table
 func TaskCreateTable(db *pg.DB) error {
@@ -33,6 +30,10 @@ func TaskCreateTable(db *pg.DB) error {
 	log.Printf("Task table created")
 
 	return nil
+}
+
+func (taskRepo STaskRepo) TaskQueryGetAllData(tasks *[]domain.STask) (int, error) {
+	return PostgresConnect.Model(tasks).SelectAndCount()
 }
 
 // Query get all task's data in the database

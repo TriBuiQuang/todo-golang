@@ -9,6 +9,22 @@ import (
 	"togo/internal/core/domain"
 )
 
+type TaskService struct {
+	TaskRepo interface {
+		GetAllTasks() ([]domain.STask, int, error)
+	}
+}
+
+func (service *TaskService) GetAllTasks() ([]domain.STask, int, error) {
+	var tasks []domain.STask
+
+	repo := &adapterPostgresRepo.STaskRepo{}
+
+	count, err := repo.TaskQueryGetAllData(&tasks)
+
+	return tasks, count, err
+}
+
 // Bushiness for get all task
 func GetAllTasks() ([]domain.STask, int, error) {
 	var tasks []domain.STask
