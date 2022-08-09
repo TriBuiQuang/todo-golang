@@ -18,9 +18,11 @@ type TaskService struct {
 func (service *TaskService) GetAllTasks() ([]domain.STask, int, error) {
 	var tasks []domain.STask
 
-	repo := &adapterPostgresRepo.STaskRepo{}
+	repo := &adapterPostgresRepo.STaskRepo{
+		Tasks: &tasks,
+	}
 
-	count, err := repo.TaskQueryGetAllData(&tasks)
+	count, err := repo.TaskQueryGetAllData()
 
 	return tasks, count, err
 }

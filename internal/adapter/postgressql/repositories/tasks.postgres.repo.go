@@ -15,6 +15,7 @@ type STaskRepo struct {
 	TaskInterface interface {
 		TaskQueryGetAllData() (int, error)
 	}
+	Tasks *[]domain.STask
 }
 
 // Create User Table
@@ -32,8 +33,8 @@ func TaskCreateTable(db *pg.DB) error {
 	return nil
 }
 
-func (taskRepo STaskRepo) TaskQueryGetAllData(tasks *[]domain.STask) (int, error) {
-	return PostgresConnect.Model(tasks).SelectAndCount()
+func (taskRepo STaskRepo) TaskQueryGetAllData() (int, error) {
+	return PostgresConnect.Model(taskRepo.Tasks).SelectAndCount()
 }
 
 // Query get all task's data in the database
