@@ -1,6 +1,7 @@
 package cmdRestFulRoutes
 
 import (
+	adapterPostgres "togo/internal/adapter/postgressql"
 	portsRestFul "togo/internal/ports/restful"
 	portsRestFulTask "togo/internal/ports/restful/tasks"
 	portsRestFulTodo "togo/internal/ports/restful/todos"
@@ -16,12 +17,15 @@ func Routes(router *gin.Engine) {
 	// Health check routes
 	router.GET("/api/ping", portsRestFul.HealthCheck)
 
+	db := adapterPostgres.ConnectDatabase()
+	userPort := portsRestFulUser.NewUserPort(db)
+
 	// Users routes
-	router.GET("/api/users", portsRestFulUser.GetAllUsers)
-	router.POST("/api/user", portsRestFulUser.CreateUser)
-	router.GET("/api/user/:userId", portsRestFulUser.GetSingleUser)
-	router.PUT("/api/user/:userId", portsRestFulUser.EditUser)
-	router.DELETE("/api/user/:userId", portsRestFulUser.DeleteUser)
+	// router.GET("/api/users", portsRestFulUser.GetAllUsers)
+	router.POST("/api/user", userPort.CreateUser)
+	// router.GET("/api/user/:userId", portsRestFulUser.GetSingleUser)
+	// router.PUT("/api/user/:userId", portsRestFulUser.EditUser)
+	// router.DELETE("/api/user/:userId", portsRestFulUser.DeleteUser)
 
 	// Tasks routes
 	router.GET("/api/tasks", portsRestFulTask.GetAllTasks)
