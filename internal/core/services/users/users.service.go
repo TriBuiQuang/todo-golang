@@ -1,59 +1,54 @@
 package serviceUsers
 
 import (
-	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
 	"togo/internal/core/domain"
+
+	"github.com/go-pg/pg/v9"
+	"github.com/google/uuid"
 )
 
 type UserService struct {
+	DB       *pg.DB
 	UserRepo interface {
-		GetAllUsers() ([]domain.SUser, int, error)
-		CreateUser() (domain.SUser, error)
-		GetSingleUser() error
-		DeleteUser() error
+		// GetAllUsers() ([]domain.SUser, int, error)
+		CreateUser(db *pg.DB, user *domain.SUser) (*domain.SUser, error)
+		// GetSingleUser() error
+		// DeleteUser() error
+		// UserQueryGetAllData() ([]*domain.SUser, int, error)
 	}
-	// Handle more than 1 data
-	Users *[]domain.SUser
-	// Handle only 1 data
-	User *domain.SUser
 }
 
 // Bushiness for get all user
-func (service *UserService) GetAllUsers() ([]domain.SUser, int, error) {
-	repo := &adapterPostgresRepo.SUserRepo{
-		Users: &[]domain.SUser{},
-	}
-	count, err := repo.UserQueryGetAllData()
+// func (service *UserService) GetAllUsers() ([]*domain.SUser, int, error) {
+// 	users, count, err := service.UserRepo.UserQueryGetAllData()
 
-	return *repo.Users, count, err
+// 	return users, count, err
+// }
+
+// Business for create new user
+func (service *UserService) CreateUser(user *domain.SUser) (*domain.SUser, error) {
+	user.ID = uuid.New().String()
+
+	return service.UserRepo.CreateUser(service.DB, user)
 }
 
-// Bushiness for create new user
-func (service *UserService) CreateUser() (domain.SUser, error) {
-	repo := &adapterPostgresRepo.SUserRepo{
-		User: service.User,
-	}
+// func (service *UserService) GetSingleUser() error {
+// 	repo := &adapterPostgresRepo.SUserRepo{
+// 		User: service.User,
+// 	}
+// 	return repo.UserQueryGetSingleData()
+// }
 
-	return repo.UserQueryCreateData()
-}
+// func (service *UserService) EditUser() error {
+// 	repo := &adapterPostgresRepo.SUserRepo{
+// 		User: service.User,
+// 	}
+// 	return repo.UserQueryEditData()
+// }
 
-func (service *UserService) GetSingleUser() error {
-	repo := &adapterPostgresRepo.SUserRepo{
-		User: service.User,
-	}
-	return repo.UserQueryGetSingleData()
-}
-
-func (service *UserService) EditUser() error {
-	repo := &adapterPostgresRepo.SUserRepo{
-		User: service.User,
-	}
-	return repo.UserQueryEditData()
-}
-
-func (service *UserService) DeleteUser() error {
-	repo := &adapterPostgresRepo.SUserRepo{
-		User: service.User,
-	}
-	return repo.UserQueryDeleteData()
-}
+// func (service *UserService) DeleteUser() error {
+// 	repo := &adapterPostgresRepo.SUserRepo{
+// 		User: service.User,
+// 	}
+// 	return repo.UserQueryDeleteData()
+// }
