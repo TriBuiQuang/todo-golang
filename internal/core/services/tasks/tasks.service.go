@@ -3,77 +3,82 @@ package serviceTasks
 // func CreateNewTask
 
 import (
-	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
+	"errors"
+	"time"
 	"togo/internal/core/domain"
+	serviceUsers "togo/internal/core/services/users"
+
+	"github.com/go-pg/pg/v9"
+	"github.com/google/uuid"
 )
 
 type TaskService struct {
+	DB       *pg.DB
 	TaskRepo interface {
-		GetAllTasks() ([]domain.STask, int, error)
-		CreateTask() (domain.STask, error)
-		GetSingleTask() error
-		DeleteTask() error
+		CreateData(task *domain.STask) (*domain.STask, error)
+		GetAllData() ([]domain.STask, int, error)
+		GetAllTaskToday(task *[]domain.STask, userId string, beginningOfDay time.Time) (int, error)
+		GetSingleData(task *domain.STask) error
+		DeleteData(task *domain.STask) error
 	}
-	// Handle more than 1 data
-	Tasks *[]domain.STask
-	// Handle only 1 data
-	Task *domain.STask
+	UserService serviceUsers.UserService
+}
+
+// Bushiness for create new task
+func (service *TaskService) CreateTask(task *domain.STask) (*domain.STask, error) {
+	var oldTask []domain.STask
+	task.ID = uuid.New().String()
+
+	user := &domain.SUser{ID: task.UserID}
+	now := time.Now()
+
+	currentYear, currentMonth, currentDay := now.Date()
+	currentLocation := now.Location()
+
+	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
+
+	userErr := service.UserService.UserRepo.GetSingleData(user)
+	if userErr != nil {
+		return &domain.STask{}, userErr
+	}
+
+	totalTodayTask, oldTaskErr := service.TaskRepo.GetAllTaskToday(&oldTask, task.UserID, beginningOfDay)
+
+	if oldTaskErr != nil {
+		return &domain.STask{}, oldTaskErr
+	}
+
+	if totalTodayTask != 0 && totalTodayTask >= user.LimitPerDay {
+		return &domain.STask{}, errors.New("this user is out of the limit in order to create a new task. ")
+	}
+
+	return service.TaskRepo.CreateData(task)
 }
 
 func (service *TaskService) GetAllTasks() ([]domain.STask, int, error) {
 
-	repo := &adapterPostgresRepo.STaskRepo{
-		Tasks: &[]domain.STask{},
-	}
-
-	count, err := repo.TaskQueryGetAllData()
-
-	return *repo.Tasks, count, err
+	return service.TaskRepo.GetAllData()
 }
 
-// Bushiness for create new task
-func (service *TaskService) CreateTask() (*domain.STask, error) {
-	// var oldTask []domain.STask
+func (service *TaskService) GetAllTaskToday(tasks *[]domain.STask, userId string) (*[]domain.STask, int, error) {
+	now := time.Now()
 
-	// repo := &adapterPostgresRepo.STaskRepo{
-	// 	Task: &domain.STask{},
-	// }
-	// repoUser := &adapterPostgresRepo.SUserRepo{
-	// 	User: &domain.SUser{ID: service.Task.UserID},
-	// }
+	currentYear, currentMonth, currentDay := now.Date()
+	currentLocation := now.Location()
 
-	// now := time.Now()
+	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
 
-	// currentYear, currentMonth, currentDay := now.Date()
-	// currentLocation := now.Location()
+	count, err := service.TaskRepo.GetAllTaskToday(tasks, userId, beginningOfDay)
 
-	// beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
-
-	// userErr := repoUser.UserQueryGetSingleData()
-	// if userErr != nil {
-	// 	return domain.STask{}, userErr
-	// }
-
-	// totalTodayTask, oldTaskErr := adapterPostgresRepo.GetAllTaskToday(&oldTask, repo.Task.UserID, beginningOfDay)
-
-	// if oldTaskErr != nil {
-	// 	return domain.STask{}, oldTaskErr
-	// }
-
-	// if totalTodayTask != 0 && totalTodayTask >= repoUser.User.Limit {
-	// 	return *repo.Task, errors.New("this user is out of the limit in order to create a new task. ")
-	// }
-
-	// return adapterPostgresRepo.TaskQueryCreateData(repo.Task)
-	return nil, nil
+	return tasks, count, err
 }
 
-func (service *TaskService) GetSingleTask() error {
+func (service *TaskService) GetSingleTask(task *domain.STask) error {
 
-	return adapterPostgresRepo.TaskQueryGetSingleData(service.Task)
+	return service.TaskRepo.GetSingleData(task)
 }
 
-func (service *TaskService) DeleteTask() error {
+func (service *TaskService) DeleteTask(task *domain.STask) error {
 
-	return adapterPostgresRepo.TaskQueryDeleteData(service.Task)
+	return service.TaskRepo.DeleteData(task)
 }

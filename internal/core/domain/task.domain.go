@@ -11,3 +11,7 @@ type STask struct {
 	CreatedAt time.Time `pg:"default:now()" json:"created_at"`
 	UpdatedAt time.Time `pg:"default:now()" json:"updated_at"`
 }
+
+func (STask) TableName() string {
+	return "tasks"
+}

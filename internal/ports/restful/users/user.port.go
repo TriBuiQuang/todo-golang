@@ -11,45 +11,28 @@ import (
 	"github.com/go-pg/pg/v9"
 )
 
+type SUserPort struct {
+	UserService interface {
+		GetAllUsers() ([]domain.SUser, int, error)
+		CreateUser(user *domain.SUser) (*domain.SUser, error)
+		GetSingleUser(user *domain.SUser) error
+		EditUser(user *domain.SUser) error
+		DeleteUser(user *domain.SUser) error
+	}
+}
+
 func NewUserPort(db *pg.DB) *SUserPort {
 	userService := &serviceUsers.UserService{
-		DB:       db,
-		UserRepo: &adapterPostgresRepo.SUserRepo{},
+		DB: db,
+		UserRepo: &adapterPostgresRepo.SUserRepo{
+			DB: db,
+		},
 	}
 
 	return &SUserPort{
 		UserService: userService,
 	}
 }
-
-type SUserPort struct {
-	UserService interface {
-		// GetAllUsers(c *gin.Context)
-		CreateUser(user *domain.SUser) (*domain.SUser, error)
-		// GetSingleUser(c *gin.Context)
-		// EditUser(c *gin.Context)
-		// DeleteUser(c *gin.Context)
-	}
-}
-
-// func GetAllUsers(c *gin.Context) {
-// 	service := &serviceUsers.UserService{}
-
-// 	users, totalUsers, err := service.GetAllUsers()
-
-// 	if err != nil {
-
-// 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"status":     http.StatusOK,
-// 		"message":    "All Users",
-// 		"total_user": totalUsers,
-// 		"data":       users,
-// 	})
-// }
 
 func (u *SUserPort) CreateUser(c *gin.Context) {
 	user := &domain.SUser{}
@@ -68,64 +51,75 @@ func (u *SUserPort) CreateUser(c *gin.Context) {
 	})
 }
 
-// func GetSingleUser(c *gin.Context) {
-// 	userId := c.Param("userId")
-// 	service := &serviceUsers.UserService{
-// 		User: &domain.SUser{ID: userId},
-// 	}
+func (u *SUserPort) GetAllUsers(c *gin.Context) {
+	users, totalUsers, err := u.UserService.GetAllUsers()
 
-// 	err := service.GetSingleUser()
+	if err != nil {
 
-// 	if err != nil {
-// 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusNotFound))
-// 		return
-// 	}
+		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"status":  http.StatusOK,
-// 		"message": "Single User",
-// 		"data":    service.User,
-// 	})
+	c.JSON(http.StatusOK, gin.H{
+		"status":     http.StatusOK,
+		"message":    "All Users",
+		"total_user": totalUsers,
+		"data":       users,
+	})
+}
 
-// }
+func (u *SUserPort) GetSingleUser(c *gin.Context) {
+	userId := c.Param("userId")
+	user := &domain.SUser{ID: userId}
 
-// func EditUser(c *gin.Context) {
-// 	userId := c.Param("userId")
-// 	service := &serviceUsers.UserService{
-// 		User: &domain.SUser{ID: userId},
-// 	}
-// 	c.BindJSON(&service.User)
-// 	// completed := user.Completed
+	err := u.UserService.GetSingleUser(user)
 
-// 	err := service.EditUser()
+	if err != nil {
+		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusNotFound))
+		return
+	}
 
-// 	if err != nil {
-// 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
-// 		return
-// 	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "Single User",
+		"data":    user,
+	})
 
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"status":  200,
-// 		"message": "User Edited Successfully",
-// 	})
+}
 
-// }
+func (u *SUserPort) EditUser(c *gin.Context) {
+	userId := c.Param("userId")
+	user := &domain.SUser{ID: userId}
 
-// func DeleteUser(c *gin.Context) {
-// 	userId := c.Param("userId")
+	c.BindJSON(user)
 
-// 	service := &serviceUsers.UserService{
-// 		User: &domain.SUser{ID: userId},
-// 	}
-// 	err := service.DeleteUser()
+	err := u.UserService.EditUser(user)
 
-// 	if err != nil {
-// 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
-// 		return
-// 	}
+	if err != nil {
+		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"status":  http.StatusOK,
-// 		"message": "User deleted successfully",
-// 	})
-// }
+	c.JSON(http.StatusOK, gin.H{
+		"status":  200,
+		"message": "User Edited Successfully",
+	})
+
+}
+
+func (u *SUserPort) DeleteUser(c *gin.Context) {
+	userId := c.Param("userId")
+	user := &domain.SUser{ID: userId}
+
+	err := u.UserService.DeleteUser(user)
+
+	if err != nil {
+		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "User deleted successfully",
+	})
+}

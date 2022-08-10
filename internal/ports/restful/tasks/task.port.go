@@ -2,51 +2,54 @@ package portsRestFulTask
 
 import (
 	"net/http"
+	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
 	"togo/internal/core/domain"
 	serviceTasks "togo/internal/core/services/tasks"
+	serviceUsers "togo/internal/core/services/users"
 	portsRestFul "togo/internal/ports/restful"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-pg/pg/v9"
 )
 
 type STaskPort struct {
 	TaskService interface {
-		GetAllTasks(c *gin.Context)
-		CreateTask(c *gin.Context)
-		GetSingleTask(c *gin.Context)
-		DeleteTask(c *gin.Context)
+		CreateTask(task *domain.STask) (*domain.STask, error)
+		GetAllTasks() ([]domain.STask, int, error)
+		GetAllTaskToday(tasks *[]domain.STask, userId string) (*[]domain.STask, int, error)
+		GetSingleTask(task *domain.STask) error
+		DeleteTask(task *domain.STask) error
 	}
 }
 
-func GetAllTasks(c *gin.Context) {
-	service := &serviceTasks.TaskService{}
-
-	tasks, totalTasks, err := service.GetAllTasks()
-
-	if err != nil {
-
-		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
-		return
+func NewTaskPort(db *pg.DB) *STaskPort {
+	taskService := &serviceTasks.TaskService{
+		DB: db,
+		TaskRepo: &adapterPostgresRepo.STaskRepo{
+			DB: db,
+		},
+		UserService: serviceUsers.UserService{
+			DB: db,
+			UserRepo: &adapterPostgresRepo.SUserRepo{
+				DB: db,
+			},
+		},
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":     http.StatusOK,
-		"message":    "All Tasks",
-		"total_task": totalTasks,
-		"data":       tasks,
-	})
+	return &STaskPort{
+		TaskService: taskService,
+	}
 }
 
-func CreateTask(c *gin.Context) {
-	service := &serviceTasks.TaskService{}
-	c.BindJSON(service.Task)
+func (t *STaskPort) CreateTask(c *gin.Context) {
+	task := &domain.STask{}
+	c.BindJSON(task)
 
-	if portsRestFul.ValidateCreateTask(c, service.Task) {
+	if portsRestFul.ValidateCreateTask(c, task) {
 		return
 	}
 
-	newTask, err := service.CreateTask()
-	// newTask, err := serviceTasks.CreateTask(service.Task)
+	newTask, err := t.TaskService.CreateTask(task)
 
 	if err != nil {
 		if err.Error() == "this user is out of the limit in order to create a new task. " {
@@ -65,12 +68,28 @@ func CreateTask(c *gin.Context) {
 	})
 }
 
-func GetSingleTask(c *gin.Context) {
-	taskId := c.Param("taskId")
-	service := &serviceTasks.TaskService{
-		Task: &domain.STask{ID: taskId},
+func (t *STaskPort) GetAllTasks(c *gin.Context) {
+	tasks, totalTasks, err := t.TaskService.GetAllTasks()
+
+	if err != nil {
+
+		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+		return
 	}
-	err := service.GetSingleTask()
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     http.StatusOK,
+		"message":    "All Tasks",
+		"total_task": totalTasks,
+		"data":       tasks,
+	})
+}
+
+func (t *STaskPort) GetSingleTask(c *gin.Context) {
+	taskId := c.Param("taskId")
+	task := &domain.STask{ID: taskId}
+
+	err := t.TaskService.GetSingleTask(task)
 
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusNotFound))
@@ -80,20 +99,16 @@ func GetSingleTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Single Task",
-		"data":    service.Task,
+		"data":    task,
 	})
-
 }
 
-func DeleteTask(c *gin.Context) {
+func (t *STaskPort) DeleteTask(c *gin.Context) {
 	taskId := c.Param("taskId")
 	userId := c.Param("userId")
+	task := &domain.STask{ID: taskId, UserID: userId}
 
-	service := &serviceTasks.TaskService{
-		Task: &domain.STask{ID: taskId, UserID: userId},
-	}
-
-	err := service.DeleteTask()
+	err := t.TaskService.DeleteTask(task)
 
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
