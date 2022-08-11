@@ -3,36 +3,82 @@ package serviceTasks
 // func CreateNewTask
 
 import (
-	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
+	"errors"
+	"time"
 	"togo/internal/core/domain"
+	serviceUsers "togo/internal/core/services/users"
+
+	"github.com/go-pg/pg/v9"
+	"github.com/google/uuid"
 )
 
-// Bushiness for get all task
-func GetAllTasks() ([]domain.STask, int, error) {
-	var tasks []domain.STask
+type TaskService struct {
+	DB       *pg.DB
+	TaskRepo interface {
+		CreateData(task *domain.STask) (*domain.STask, error)
+		GetAllData() ([]domain.STask, int, error)
+		GetAllTaskToday(task *[]domain.STask, userId string, beginningOfDay time.Time) (int, error)
+		GetSingleData(task *domain.STask) error
+		DeleteData(task *domain.STask) error
+	}
+	UserService serviceUsers.UserService
+}
 
-	count, err := adapterPostgresRepo.TaskQueryGetAllData(&tasks)
+// Bushiness for create new task
+func (service *TaskService) CreateTask(task *domain.STask) (*domain.STask, error) {
+	var oldTask []domain.STask
+	task.ID = uuid.New().String()
+
+	user := &domain.SUser{ID: task.UserID}
+	now := time.Now()
+
+	currentYear, currentMonth, currentDay := now.Date()
+	currentLocation := now.Location()
+
+	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
+
+	userErr := service.UserService.UserRepo.GetSingleData(user)
+	if userErr != nil {
+		return &domain.STask{}, userErr
+	}
+
+	totalTodayTask, oldTaskErr := service.TaskRepo.GetAllTaskToday(&oldTask, task.UserID, beginningOfDay)
+
+	if oldTaskErr != nil {
+		return &domain.STask{}, oldTaskErr
+	}
+
+	if totalTodayTask != 0 && totalTodayTask >= user.LimitPerDay {
+		return &domain.STask{}, errors.New("this user is out of the limit in order to create a new task. ")
+	}
+
+	return service.TaskRepo.CreateData(task)
+}
+
+func (service *TaskService) GetAllTasks() ([]domain.STask, int, error) {
+
+	return service.TaskRepo.GetAllData()
+}
+
+func (service *TaskService) GetAllTaskToday(tasks *[]domain.STask, userId string) (*[]domain.STask, int, error) {
+	now := time.Now()
+
+	currentYear, currentMonth, currentDay := now.Date()
+	currentLocation := now.Location()
+
+	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
+
+	count, err := service.TaskRepo.GetAllTaskToday(tasks, userId, beginningOfDay)
 
 	return tasks, count, err
 }
 
-// Bushiness for create new task
-func CreateTask(task domain.STask) (domain.STask, error) {
+func (service *TaskService) GetSingleTask(task *domain.STask) error {
 
-	return adapterPostgresRepo.TaskQueryCreateData(task)
+	return service.TaskRepo.GetSingleData(task)
 }
 
-func GetSingleTask(task *domain.STask) error {
+func (service *TaskService) DeleteTask(task *domain.STask) error {
 
-	return adapterPostgresRepo.TaskQueryGetSingleData(task)
-}
-
-func EditTask(taskId string, task domain.STask) error {
-
-	return adapterPostgresRepo.TaskQueryEditData(taskId, task)
-}
-
-func DeleteTask(task *domain.STask) error {
-
-	return adapterPostgresRepo.TaskQueryDeleteData(task)
+	return service.TaskRepo.DeleteData(task)
 }

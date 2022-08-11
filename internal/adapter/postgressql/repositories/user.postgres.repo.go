@@ -8,10 +8,11 @@ import (
 
 	"github.com/go-pg/pg/v9"
 	orm "github.com/go-pg/pg/v9/orm"
-	guuid "github.com/google/uuid"
 )
 
-// Giao tiep voi db (nhu may cau insert)
+type SUserRepo struct {
+	DB *pg.DB
+}
 
 // Create User Table
 func UserCreateTable(db *pg.DB) error {
@@ -28,46 +29,48 @@ func UserCreateTable(db *pg.DB) error {
 	return nil
 }
 
-// Query get all user's data in the database
-func UserQueryGetAllData(users *[]domain.SUser) (int, error) {
+// Insert new user data to database
+func (userRepo SUserRepo) CreateUser(user *domain.SUser) (*domain.SUser, error) {
+	now := time.Now()
+	user.CreatedAt = now
+	user.UpdatedAt = now
 
-	return PostgresConnect.Model(users).SelectAndCount()
+	err := userRepo.DB.Insert(user)
+
+	return user, err
 }
 
-// Insert new user data to database
-func UserQueryCreateData(username string, limit int) (domain.SUser, error) {
-	id := guuid.New().String()
-	now := time.Now()
+// Query get all user's data in the database
+func (userRepo SUserRepo) GetAllData() ([]domain.SUser, int, error) {
 
-	newUser := domain.SUser{
-		ID:        id,
-		Username:  username,
-		Limit:     limit,
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
+	users := []domain.SUser{}
 
-	err := PostgresConnect.Insert(&newUser)
-
-	return newUser, err
+	count, err := userRepo.DB.Model(&users).SelectAndCount()
+	// count, err := PostgresConnect.Model(users).SelectAndCount()
+	return users, count, err
 }
 
 // Query get single user's data by ID in the database
-func UserQueryGetSingleData(user *domain.SUser) error {
+func (userRepo SUserRepo) GetSingleData(user *domain.SUser) error {
 
-	return PostgresConnect.Select(user)
-
+	return userRepo.DB.Select(user)
 }
 
 // Query get all user's data in the database
-func UserQueryEditData(userId string, user domain.SUser) error {
-	_, err := PostgresConnect.Model(&domain.SUser{}).Set("username = ?", user.Username, "limit = ?", user.Limit, "updated_at = ?", time.Now()).Where("id = ?", userId).Update()
+func (userRepo SUserRepo) EditData(user *domain.SUser) error {
+
+	_, err := userRepo.DB.Model(user).
+		Set("username = ?", user.Username).
+		Set(`limit_per_day = ?`, user.LimitPerDay).
+		Set("updated_at = ?", time.Now()).
+		Where("id = ?", user.ID).
+		Update()
 
 	return err
 }
 
 // Query get all user's data in the database
-func UserQueryDeleteData(user *domain.SUser) error {
+func (userRepo SUserRepo) DeleteData(user *domain.SUser) error {
 
-	return PostgresConnect.Delete(user)
+	return userRepo.DB.Delete(user)
 }

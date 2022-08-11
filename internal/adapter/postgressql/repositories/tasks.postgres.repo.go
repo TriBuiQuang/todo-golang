@@ -8,17 +8,11 @@ import (
 
 	"github.com/go-pg/pg/v9"
 	orm "github.com/go-pg/pg/v9/orm"
-	guuid "github.com/google/uuid"
 )
 
-// Giao tiep voi db (nhu may cau insert)
-
-// INITIALIZE DB CONNECTION (TO AVOID TOO MANY CONNECTION)
-// var dbConnect *pg.DB
-
-// func InitiateDB(db *pg.DB) {
-// 	dbConnect = db
-// }
+type STaskRepo struct {
+	DB *pg.DB
+}
 
 // Create User Table
 func TaskCreateTable(db *pg.DB) error {
@@ -35,46 +29,52 @@ func TaskCreateTable(db *pg.DB) error {
 	return nil
 }
 
-// Query get all task's data in the database
-func TaskQueryGetAllData(tasks *[]domain.STask) (int, error) {
+// Insert new task data to database
+func (taskRepo STaskRepo) CreateData(task *domain.STask) (*domain.STask, error) {
+	// id := guuid.New().String()
+	// now := time.Now()
 
-	return PostgresConnect.Model(tasks).SelectAndCount()
+	// newData := domain.STask{
+	// 	ID:        id,
+	// 	UserID:    taskRepo.Task.UserID,
+	// 	Name:      taskRepo.Task.Name,
+	// 	CreatedAt: now,
+	// 	UpdatedAt: now,
+	// }
+
+	// err := PostgresConnect.Insert(&newData)
+
+	now := time.Now()
+	task.CreatedAt = now
+	task.UpdatedAt = now
+
+	err := taskRepo.DB.Insert(task)
+
+	return task, err
 }
 
-// Insert new task data to database
-func TaskQueryCreateData(task *domain.STask) (domain.STask, error) {
-	id := guuid.New().String()
-	now := time.Now()
+// Query get all task's data in the database
+func (taskRepo STaskRepo) GetAllData() ([]domain.STask, int, error) {
+	tasks := []domain.STask{}
 
-	newData := domain.STask{
-		ID:        id,
-		UserID:    task.UserID,
-		Name:      task.Name,
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
+	count, err := taskRepo.DB.Model(&tasks).SelectAndCount()
 
-	err := PostgresConnect.Insert(&newData)
+	return tasks, count, err
+}
 
-	return newData, err
+func (taskRepo STaskRepo) GetAllTaskToday(tasks *[]domain.STask, userId string, beginningOfDay time.Time) (int, error) {
+
+	return taskRepo.DB.Model(tasks).Where("user_id = ?", userId).Where("created_at >= ?", beginningOfDay).SelectAndCount()
 }
 
 // Query get single task's data by ID in the database
-func TaskQueryGetSingleData(task *domain.STask) error {
-	err := PostgresConnect.Select(task)
+func (taskRepo STaskRepo) GetSingleData(task *domain.STask) error {
 
-	return err
+	return taskRepo.DB.Select(task)
 }
 
 // Query get all task's data in the database
-func TaskQueryEditData(task *domain.STask) error {
-	_, err := PostgresConnect.Model(&domain.STask{}).Set("name = ?", task.Name, "updated_at = ?", time.Now()).Where("user_id = ?", task.UserID).Where("id = ?", task.ID).Update()
-
-	return err
-}
-
-// Query get all task's data in the database
-func TaskQueryDeleteData(task *domain.STask) error {
+func (taskRepo STaskRepo) DeleteData(task *domain.STask) error {
 
 	return PostgresConnect.Delete(task)
 }

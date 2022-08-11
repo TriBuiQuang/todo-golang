@@ -1,36 +1,47 @@
 package serviceUsers
 
 import (
-	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
 	"togo/internal/core/domain"
+
+	"github.com/go-pg/pg/v9"
+	"github.com/google/uuid"
 )
 
+type UserService struct {
+	DB       *pg.DB
+	UserRepo interface {
+		GetAllData() ([]domain.SUser, int, error)
+		GetSingleData(user *domain.SUser) error
+		CreateUser(user *domain.SUser) (*domain.SUser, error)
+		EditData(user *domain.SUser) error
+		DeleteData(user *domain.SUser) error
+	}
+}
+
+// Business for create new user
+func (service *UserService) CreateUser(user *domain.SUser) (*domain.SUser, error) {
+	user.ID = uuid.New().String()
+
+	return service.UserRepo.CreateUser(user)
+}
+
 // Bushiness for get all user
-func GetAllUsers() ([]domain.SUser, int, error) {
-	var users []domain.SUser
+func (service *UserService) GetAllUsers() ([]domain.SUser, int, error) {
 
-	count, err := adapterPostgresRepo.UserQueryGetAllData(&users)
-
-	return users, count, err
+	return service.UserRepo.GetAllData()
 }
 
-// Bushiness for create new user
-func CreateUser(user domain.SUser) (domain.SUser, error) {
+func (service *UserService) GetSingleUser(user *domain.SUser) error {
 
-	return adapterPostgresRepo.UserQueryCreateData(user.Username, user.Limit)
+	return service.UserRepo.GetSingleData(user)
 }
 
-func GetSingleUser(user *domain.SUser) error {
+func (service *UserService) EditUser(user *domain.SUser) error {
 
-	return adapterPostgresRepo.UserQueryGetSingleData(user)
+	return service.UserRepo.EditData(user)
 }
 
-func EditUser(userId string, user domain.SUser) error {
+func (service *UserService) DeleteUser(user *domain.SUser) error {
 
-	return adapterPostgresRepo.UserQueryEditData(userId, user)
-}
-
-func DeleteUser(user *domain.SUser) error {
-
-	return adapterPostgresRepo.UserQueryDeleteData(user)
+	return service.UserRepo.DeleteData(user)
 }
