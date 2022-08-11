@@ -1,7 +1,7 @@
 package cmdRestFulRoutes
 
 import (
-	adapterPostgres "togo/internal/adapter/postgressql"
+	adapterPostgres "togo/internal/adapter/postgresql"
 	portsRestFul "togo/internal/ports/restful"
 	portsRestFulTask "togo/internal/ports/restful/tasks"
 	portsRestFulTodo "togo/internal/ports/restful/todos"

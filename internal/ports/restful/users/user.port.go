@@ -2,7 +2,7 @@ package portsRestFulUser
 
 import (
 	"net/http"
-	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
+	adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
 	"togo/internal/core/domain"
 	serviceUsers "togo/internal/core/services/users"
 	portsRestFul "togo/internal/ports/restful"
@@ -84,7 +84,6 @@ func (u *SUserPort) GetSingleUser(c *gin.Context) {
 		"message": "Single User",
 		"data":    user,
 	})
-
 }
 
 func (u *SUserPort) EditUser(c *gin.Context) {
@@ -104,7 +103,6 @@ func (u *SUserPort) EditUser(c *gin.Context) {
 		"status":  200,
 		"message": "User Edited Successfully",
 	})
-
 }
 
 func (u *SUserPort) DeleteUser(c *gin.Context) {

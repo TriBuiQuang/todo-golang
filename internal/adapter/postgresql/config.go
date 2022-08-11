@@ -7,7 +7,7 @@ import (
 	"github.com/go-pg/pg/v9"
 
 	// serviceTasks "togo/internal/core/services/tasks"
-	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
+	adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
 )
 
 const (

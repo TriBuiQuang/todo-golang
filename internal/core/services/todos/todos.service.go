@@ -1,7 +1,7 @@
 package serviceTodo
 
 import (
-	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
+	adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
 	"togo/internal/core/domain"
 )
 
