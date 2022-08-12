@@ -19,11 +19,6 @@ func TestValidateCreateTask(t *testing.T) {
 	t.Parallel()
 
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
-	// task *domain.STask
-
-	// result :=
-
-	// assert.Equal(t, true, result)
 
 	testCases := []struct {
 		name      string
