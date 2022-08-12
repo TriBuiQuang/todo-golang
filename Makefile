@@ -10,3 +10,6 @@ test-coverage-with-validation:
 test-coverage-clearly:
 	go test ./tests/...  -coverpkg=./internal/... -coverprofile ./coverage.out
 	go tool cover -func ./coverage.out
+
+test-integration:
+	go test -test.v -test.run ^TestFeatures$
