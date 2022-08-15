@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
-	cmdRestFulRoutes "togo/cmd/restful"
 
-	"github.com/gin-gonic/gin"
+	cmdRestFulRoutes "togo/cmd/restful"
+	adapterPostgres "togo/internal/adapter/postgressql"
 )
 
 func main() {
@@ -12,10 +12,8 @@ func main() {
 	// db := adapterPostgres.ConnectDatabase()
 
 	// Init Router
-	router := gin.Default()
+	db := adapterPostgres.ConnectDatabase()
 
-	// Route Handlers / Endpoints
-	cmdRestFulRoutes.Routes(router)
-
+	router := cmdRestFulRoutes.NewRoot(db)
 	log.Fatal(router.Run("localhost:8080"))
 }

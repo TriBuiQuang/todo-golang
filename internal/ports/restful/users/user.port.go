@@ -11,14 +11,15 @@ import (
 	"github.com/go-pg/pg/v9"
 )
 
+type UserServiceInterface interface {
+	GetAllUsers() ([]domain.SUser, int, error)
+	CreateUser(user *domain.SUser) (*domain.SUser, error)
+	GetSingleUser(user *domain.SUser) error
+	EditUser(user *domain.SUser) error
+	DeleteUser(user *domain.SUser) error
+}
 type SUserPort struct {
-	UserService interface {
-		GetAllUsers() ([]domain.SUser, int, error)
-		CreateUser(user *domain.SUser) (*domain.SUser, error)
-		GetSingleUser(user *domain.SUser) error
-		EditUser(user *domain.SUser) error
-		DeleteUser(user *domain.SUser) error
-	}
+	UserService UserServiceInterface
 }
 
 func NewUserPort(db *pg.DB) *SUserPort {
@@ -36,7 +37,7 @@ func NewUserPort(db *pg.DB) *SUserPort {
 
 func (u *SUserPort) CreateUser(c *gin.Context) {
 	user := &domain.SUser{}
-	c.BindJSON(user)
+	err := c.BindJSON(user)
 
 	newUser, err := u.UserService.CreateUser(user)
 	if err != nil {
