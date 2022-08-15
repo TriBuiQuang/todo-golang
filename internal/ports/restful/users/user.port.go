@@ -1,6 +1,7 @@
 package portsRestFulUser
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
@@ -38,9 +39,15 @@ func NewUserPort(db *pg.DB) *SUserPort {
 func (u *SUserPort) CreateUser(c *gin.Context) {
 	user := &domain.SUser{}
 	err := c.BindJSON(user)
-	fmt.Println("go herer", user)
+	fmt.Println("go herer", user.Username)
+
 	if err != nil {
-		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusBadRequest))
+		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusForbidden))
+		return
+	}
+
+	if user.Username == "" {
+		c.JSON(portsRestFul.PrintErrResponse(errors.New("this req is missing username "), http.StatusBadRequest))
 		return
 	}
 	fmt.Println("go herer 1")
