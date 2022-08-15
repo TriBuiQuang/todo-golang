@@ -35,21 +35,9 @@ func MockJsonPost(c *gin.Context /* the test context */, content interface{}) {
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(jsonbytes))
 }
 
-func SetUpRouter() *gin.Engine {
-	router := gin.Default()
-	return router
-}
-
 type mockUserService struct {
 	mockCreateUser func(user *domain.SUser) (*domain.SUser, error)
-}
-
-func (m *mockUserService) GetAllUsers() ([]domain.SUser, int, error) {
-	return nil, -1, nil
-}
-
-func (m *mockUserService) CreateUser(user *domain.SUser) (*domain.SUser, error) {
-	return m.mockCreateUser(nil)
+	err            error
 }
 
 func handleCreateUser(errMessage error) func(user *domain.SUser) (*domain.SUser, error) {
@@ -62,16 +50,25 @@ func handleCreateUser(errMessage error) func(user *domain.SUser) (*domain.SUser,
 	}
 }
 
-func (s *mockUserService) GetSingleUser(user *domain.SUser) error {
-	return nil
+func (m *mockUserService) CreateUser(user *domain.SUser) (*domain.SUser, error) {
+	return m.mockCreateUser(user)
 }
 
-func (s *mockUserService) EditUser(user *domain.SUser) error {
-	return nil
+func (m *mockUserService) GetAllUsers() ([]domain.SUser, int, error) {
+
+	return nil, -1, m.err
 }
 
-func (s *mockUserService) DeleteUser(user *domain.SUser) error {
-	return nil
+func (m *mockUserService) GetSingleUser(user *domain.SUser) error {
+	return m.err
+}
+
+func (m *mockUserService) EditUser(user *domain.SUser) error {
+	return m.err
+}
+
+func (m *mockUserService) DeleteUser(user *domain.SUser) error {
+	return m.err
 }
 
 func TestCreateUser(t *testing.T) {
@@ -165,6 +162,121 @@ func TestCreateUser(t *testing.T) {
 
 			MockJsonPost(c, testCase.req)
 			userPort.CreateUser(c)
+
+			assert.Equal(t, testCase.expectedCode, response.Code)
+		})
+	}
+}
+
+func TestGetAllUsers(t *testing.T) {
+	t.Parallel()
+
+	userService := &mockUserService{}
+	testCases := []struct {
+		name string
+
+		sendMessage  map[string]interface{}
+		setup        func()
+		expectedCode int
+		expectedErr  error
+	}{
+		{
+			name: "success",
+			setup: func() {
+				userService = &mockUserService{}
+			},
+			expectedCode: http.StatusOK,
+			expectedErr:  nil,
+		},
+		{
+			name: "fail because fail in service layer",
+			setup: func() {
+				userService = &mockUserService{
+					err: errors.New("test fail"),
+				}
+			},
+			expectedCode: http.StatusInternalServerError,
+			expectedErr:  nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.setup()
+			userPort := &portsRestFulUser.SUserPort{
+				UserService: userService,
+			}
+
+			// Mock gin package
+			response := httptest.NewRecorder()
+
+			c, _ := gin.CreateTestContext(response)
+			c.Request = &http.Request{
+				Header: make(http.Header),
+			}
+
+			userPort.GetAllUsers(c)
+
+			assert.Equal(t, testCase.expectedCode, response.Code)
+		})
+	}
+}
+
+func TestSingleUser(t *testing.T) {
+	t.Parallel()
+
+	userService := &mockUserService{}
+	testCases := []struct {
+		name         string
+		params       []gin.Param
+		sendMessage  map[string]interface{}
+		setup        func()
+		expectedCode int
+		expectedErr  error
+	}{
+		{
+			name: "success",
+			params: []gin.Param{
+				{
+					Key:   "userId",
+					Value: "first document",
+				},
+			},
+			setup: func() {
+				userService = &mockUserService{}
+			},
+			expectedCode: http.StatusOK,
+			expectedErr:  nil,
+		},
+		{
+			name:   "fail because fail in service layer",
+			params: []gin.Param{},
+			setup: func() {
+				userService = &mockUserService{
+					err: errors.New("test fail"),
+				}
+			},
+			expectedCode: http.StatusNotFound,
+			expectedErr:  nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.setup()
+			userPort := &portsRestFulUser.SUserPort{
+				UserService: userService,
+			}
+
+			// Mock gin package
+			response := httptest.NewRecorder()
+
+			c, _ := gin.CreateTestContext(response)
+			c.Request = &http.Request{
+				Header: make(http.Header),
+			}
+			c.Params = testCase.params
+			userPort.GetSingleUser(c)
 
 			assert.Equal(t, testCase.expectedCode, response.Code)
 		})

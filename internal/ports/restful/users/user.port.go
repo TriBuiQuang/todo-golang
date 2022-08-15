@@ -2,7 +2,6 @@ package portsRestFulUser
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
 	"togo/internal/core/domain"
@@ -15,8 +14,8 @@ import (
 
 type SUserPort struct {
 	UserService interface {
-		GetAllUsers() ([]domain.SUser, int, error)
 		CreateUser(user *domain.SUser) (*domain.SUser, error)
+		GetAllUsers() ([]domain.SUser, int, error)
 		GetSingleUser(user *domain.SUser) error
 		EditUser(user *domain.SUser) error
 		DeleteUser(user *domain.SUser) error
@@ -39,7 +38,6 @@ func NewUserPort(db *pg.DB) *SUserPort {
 func (u *SUserPort) CreateUser(c *gin.Context) {
 	user := &domain.SUser{}
 	err := c.BindJSON(user)
-	fmt.Println("go herer", user.Username)
 
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusForbidden))
@@ -50,14 +48,12 @@ func (u *SUserPort) CreateUser(c *gin.Context) {
 		c.JSON(portsRestFul.PrintErrResponse(errors.New("this req is missing username "), http.StatusBadRequest))
 		return
 	}
-	fmt.Println("go herer 1")
 
 	newUser, err := u.UserService.CreateUser(user)
 	if err != nil {
 		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
 		return
 	}
-	fmt.Println("go herer 2")
 
 	c.JSON(http.StatusCreated, gin.H{
 		"status":  http.StatusCreated,
