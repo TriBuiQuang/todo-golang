@@ -1,24 +1,29 @@
 package cmdRestFulRoutes
 
 import (
-	adapterPostgres "togo/internal/adapter/postgressql"
 	portsRestFul "togo/internal/ports/restful"
 	portsRestFulTask "togo/internal/ports/restful/tasks"
 	portsRestFulTodo "togo/internal/ports/restful/todos"
 	portsRestFulUser "togo/internal/ports/restful/users"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-pg/pg/v9"
 )
 
-type SRoute struct {
-	RouteInterface interface {
-		Routes()
-	}
+func NewRoot(db *pg.DB) *gin.Engine {
+	// Init Router
+	router := gin.Default()
+
+	// Route Handlers / Endpoints
+	// cmdRestFulRoutes.Routes(router)
+
+	initRoutes(router, db)
+
+	return router
 }
 
 // Only for restful API
-func Routes(router *gin.Engine) {
-	db := adapterPostgres.ConnectDatabase()
+func initRoutes(router *gin.Engine, db *pg.DB) {
 	userPort := portsRestFulUser.NewUserPort(db)
 	taskPort := portsRestFulTask.NewTaskPort(db)
 
