@@ -14,23 +14,23 @@ type MockRepository struct {
 	mock.Mock
 }
 
-type mockUserRepo struct {
+type MockUserRepo struct {
 	err error
 }
 
-func (m *mockUserRepo) CreateUser(user *domain.SUser) (*domain.SUser, error) {
+func (m *MockUserRepo) CreateUser(user *domain.SUser) (*domain.SUser, error) {
 	return user, nil
 }
-func (m *mockUserRepo) GetAllData() ([]domain.SUser, int, error) {
-	return nil, -1, nil
+func (m *MockUserRepo) GetAllData() ([]domain.SUser, int, error) {
+	return []domain.SUser{}, -1, nil
 }
-func (m *mockUserRepo) GetSingleData(user *domain.SUser) error {
+func (m *MockUserRepo) GetSingleData(user *domain.SUser) error {
 	return nil
 }
-func (m *mockUserRepo) EditData(user *domain.SUser) error {
+func (m *MockUserRepo) EditData(user *domain.SUser) error {
 	return nil
 }
-func (m *mockUserRepo) DeleteData(user *domain.SUser) error {
+func (m *MockUserRepo) DeleteData(user *domain.SUser) error {
 	return nil
 }
 
@@ -43,12 +43,77 @@ func TestCreateUser(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockRepo.On("CreateUser").Return(user, nil)
 
-	userService := &serviceUsers.UserService{UserRepo: &mockUserRepo{}}
+	userService := &serviceUsers.UserService{UserRepo: &MockUserRepo{}}
 
 	// Run function
 	result, err := userService.CreateUser(&user)
 	assert.Equal(t, user.Username, result.Username)
 	assert.Equal(t, user.LimitPerDay, result.LimitPerDay)
 	assert.Equal(t, nil, err)
+}
 
+func TestGetAllUsers(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now()
+	user := domain.SUser{ID: "123", Username: "testing username", LimitPerDay: 10, UpdatedAt: now, CreatedAt: now}
+
+	mockRepo := new(MockRepository)
+	mockRepo.On("GetAllData").Return(user, nil)
+
+	userService := &serviceUsers.UserService{UserRepo: &MockUserRepo{}}
+
+	// Run function
+	_, total, err := userService.GetAllUsers()
+
+	assert.Equal(t, -1, total)
+	assert.Equal(t, nil, err)
+}
+
+func TestGetSingleUser(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now()
+	user := domain.SUser{ID: "123", Username: "testing username", LimitPerDay: 10, UpdatedAt: now, CreatedAt: now}
+
+	mockRepo := new(MockRepository)
+	mockRepo.On("GetSingleUser").Return(user, nil)
+
+	userService := &serviceUsers.UserService{UserRepo: &MockUserRepo{}}
+
+	// Run function
+	err := userService.GetSingleUser(&user)
+	assert.Equal(t, nil, err)
+}
+
+func TestEditUser(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now()
+	user := domain.SUser{ID: "123", Username: "testing username", LimitPerDay: 10, UpdatedAt: now, CreatedAt: now}
+
+	mockRepo := new(MockRepository)
+	mockRepo.On("EditUser").Return(user, nil)
+
+	userService := &serviceUsers.UserService{UserRepo: &MockUserRepo{}}
+
+	// Run function
+	err := userService.EditUser(&user)
+	assert.Equal(t, nil, err)
+}
+
+func TestDeleteUser(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now()
+	user := domain.SUser{ID: "123", Username: "testing username", LimitPerDay: 10, UpdatedAt: now, CreatedAt: now}
+
+	mockRepo := new(MockRepository)
+	mockRepo.On("DeleteUser").Return(user, nil)
+
+	userService := &serviceUsers.UserService{UserRepo: &MockUserRepo{}}
+
+	// Run function
+	err := userService.DeleteUser(&user)
+	assert.Equal(t, nil, err)
 }

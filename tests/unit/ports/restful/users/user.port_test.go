@@ -1,38 +1,22 @@
 package portsRestFulUser
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
-	"net/http/httptest"
+	"reflect"
 	"testing"
+	mockRestFul "togo/__mocks__/ports/restful"
 	"togo/internal/core/domain"
 	portsRestFulUser "togo/internal/ports/restful/users"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-pg/pg/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 type MockRepository struct {
 	mock.Mock
-}
-
-func MockJsonPost(c *gin.Context /* the test context */, content interface{}) {
-	c.Request.Method = "POST" // or PUT
-	c.Request.Header.Set("Content-Type", "application/json")
-
-	jsonbytes, err := json.Marshal(content)
-	if err != nil {
-		panic(err)
-	}
-
-	// the request body must be an io.ReadCloser
-	// the bytes buffer though doesn't implement io.Closer,
-	// so you wrap it in a no-op closer
-	c.Request.Body = io.NopCloser(bytes.NewBuffer(jsonbytes))
 }
 
 type mockUserService struct {
@@ -71,17 +55,25 @@ func (m *mockUserService) DeleteUser(user *domain.SUser) error {
 	return m.err
 }
 
+func TestNewTaskPort(t *testing.T) {
+
+	result := portsRestFulUser.NewUserPort(&pg.DB{})
+
+	assert.Equal(t, "*portsRestFulUser.SUserPort", reflect.TypeOf(result).String())
+	assert.Equal(t, "*serviceUsers.UserService", reflect.TypeOf(result.UserService).String())
+}
+
 func TestCreateUser(t *testing.T) {
 	t.Parallel()
 
 	userService := &mockUserService{}
 	testCases := []struct {
-		name         string
-		req          *domain.SUser
-		sendMessage  map[string]interface{}
-		setup        func()
-		expectedCode int
-		expectedErr  error
+		name        string
+		req         *domain.SUser
+		sendMessage map[string]interface{}
+		setup       func()
+		actualCode  int
+		actualErr   error
 	}{
 		{
 			name: "success",
@@ -94,8 +86,8 @@ func TestCreateUser(t *testing.T) {
 					mockCreateUser: handleCreateUser(nil),
 				}
 			},
-			expectedCode: http.StatusCreated,
-			expectedErr:  nil,
+			actualCode: http.StatusCreated,
+			actualErr:  nil,
 		},
 		{
 			name: "fail because not give anything",
@@ -105,8 +97,8 @@ func TestCreateUser(t *testing.T) {
 					mockCreateUser: handleCreateUser(nil),
 				}
 			},
-			expectedCode: http.StatusBadRequest,
-			expectedErr:  nil,
+			actualCode: http.StatusBadRequest,
+			actualErr:  nil,
 		},
 		{
 			name: "fail because not give Username",
@@ -116,8 +108,8 @@ func TestCreateUser(t *testing.T) {
 					mockCreateUser: handleCreateUser(nil),
 				}
 			},
-			expectedCode: http.StatusBadRequest,
-			expectedErr:  nil,
+			actualCode: http.StatusBadRequest,
+			actualErr:  nil,
 		},
 		{
 			name: "fail because give empty json",
@@ -127,8 +119,8 @@ func TestCreateUser(t *testing.T) {
 					mockCreateUser: handleCreateUser(errors.New("test fail")),
 				}
 			},
-			expectedCode: http.StatusBadRequest,
-			expectedErr:  nil,
+			actualCode: http.StatusBadRequest,
+			actualErr:  nil,
 		},
 		{
 			name: "fail because give normal json but fail in service layer",
@@ -140,8 +132,8 @@ func TestCreateUser(t *testing.T) {
 					},
 				}
 			},
-			expectedCode: http.StatusInternalServerError,
-			expectedErr:  nil,
+			actualCode: http.StatusInternalServerError,
+			actualErr:  nil,
 		},
 	}
 
@@ -153,17 +145,12 @@ func TestCreateUser(t *testing.T) {
 			}
 
 			// Mock gin package
-			response := httptest.NewRecorder()
+			response, c := mockRestFul.MockSetup()
 
-			c, _ := gin.CreateTestContext(response)
-			c.Request = &http.Request{
-				Header: make(http.Header),
-			}
-
-			MockJsonPost(c, testCase.req)
+			mockRestFul.MockJsonPost(c, testCase.req)
 			userPort.CreateUser(c)
 
-			assert.Equal(t, testCase.expectedCode, response.Code)
+			assert.Equal(t, response.Code, testCase.actualCode)
 		})
 	}
 }
@@ -175,18 +162,18 @@ func TestGetAllUsers(t *testing.T) {
 	testCases := []struct {
 		name string
 
-		sendMessage  map[string]interface{}
-		setup        func()
-		expectedCode int
-		expectedErr  error
+		sendMessage map[string]interface{}
+		setup       func()
+		actualCode  int
+		actualErr   error
 	}{
 		{
 			name: "success",
 			setup: func() {
 				userService = &mockUserService{}
 			},
-			expectedCode: http.StatusOK,
-			expectedErr:  nil,
+			actualCode: http.StatusOK,
+			actualErr:  nil,
 		},
 		{
 			name: "fail because fail in service layer",
@@ -195,8 +182,8 @@ func TestGetAllUsers(t *testing.T) {
 					err: errors.New("test fail"),
 				}
 			},
-			expectedCode: http.StatusInternalServerError,
-			expectedErr:  nil,
+			actualCode: http.StatusInternalServerError,
+			actualErr:  nil,
 		},
 	}
 
@@ -208,16 +195,11 @@ func TestGetAllUsers(t *testing.T) {
 			}
 
 			// Mock gin package
-			response := httptest.NewRecorder()
-
-			c, _ := gin.CreateTestContext(response)
-			c.Request = &http.Request{
-				Header: make(http.Header),
-			}
+			response, c := mockRestFul.MockSetup()
 
 			userPort.GetAllUsers(c)
 
-			assert.Equal(t, testCase.expectedCode, response.Code)
+			assert.Equal(t, response.Code, testCase.actualCode)
 		})
 	}
 }
@@ -227,12 +209,12 @@ func TestSingleUser(t *testing.T) {
 
 	userService := &mockUserService{}
 	testCases := []struct {
-		name         string
-		params       []gin.Param
-		sendMessage  map[string]interface{}
-		setup        func()
-		expectedCode int
-		expectedErr  error
+		name        string
+		params      []gin.Param
+		sendMessage map[string]interface{}
+		setup       func()
+		actualCode  int
+		actualErr   error
 	}{
 		{
 			name: "success",
@@ -245,8 +227,8 @@ func TestSingleUser(t *testing.T) {
 			setup: func() {
 				userService = &mockUserService{}
 			},
-			expectedCode: http.StatusOK,
-			expectedErr:  nil,
+			actualCode: http.StatusOK,
+			actualErr:  nil,
 		},
 		{
 			name:   "fail because fail in service layer",
@@ -256,8 +238,8 @@ func TestSingleUser(t *testing.T) {
 					err: errors.New("test fail"),
 				}
 			},
-			expectedCode: http.StatusNotFound,
-			expectedErr:  nil,
+			actualCode: http.StatusNotFound,
+			actualErr:  nil,
 		},
 	}
 
@@ -269,16 +251,153 @@ func TestSingleUser(t *testing.T) {
 			}
 
 			// Mock gin package
-			response := httptest.NewRecorder()
+			response, c := mockRestFul.MockSetup()
 
-			c, _ := gin.CreateTestContext(response)
-			c.Request = &http.Request{
-				Header: make(http.Header),
-			}
 			c.Params = testCase.params
 			userPort.GetSingleUser(c)
 
-			assert.Equal(t, testCase.expectedCode, response.Code)
+			assert.Equal(t, response.Code, testCase.actualCode)
+		})
+	}
+}
+
+func TestEditUser(t *testing.T) {
+	t.Parallel()
+
+	userService := &mockUserService{}
+	testCases := []struct {
+		name        string
+		params      []gin.Param
+		req         *domain.SUser
+		sendMessage map[string]interface{}
+		setup       func()
+		expectCode  int
+		expectErr   error
+	}{
+		{
+			name: "success",
+			params: []gin.Param{
+				{
+					Key:   "userId",
+					Value: "first document",
+				},
+			},
+			req: &domain.SUser{Username: "testing", LimitPerDay: 20},
+			setup: func() {
+				userService = &mockUserService{}
+			},
+			expectCode: http.StatusOK,
+			expectErr:  nil,
+		},
+		{
+			name: "fail because there is no username and limit per day",
+			params: []gin.Param{
+				{
+					Key:   "userId",
+					Value: "first document",
+				},
+			},
+			req: &domain.SUser{},
+			setup: func() {
+				userService = &mockUserService{}
+			},
+			expectCode: http.StatusBadRequest,
+			expectErr:  nil,
+		},
+		{
+			name: "fail because fail in service layer",
+			params: []gin.Param{{
+				Key:   "userId",
+				Value: "first document",
+			}},
+			req: &domain.SUser{Username: "testing", LimitPerDay: 20},
+			setup: func() {
+				userService = &mockUserService{
+					err: errors.New("test fail"),
+				}
+			},
+			expectCode: http.StatusInternalServerError,
+			expectErr:  nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.setup()
+			userPort := &portsRestFulUser.SUserPort{
+				UserService: userService,
+			}
+
+			// Mock gin package
+			response, c := mockRestFul.MockSetup()
+			mockRestFul.MockJsonPost(c, testCase.req)
+			c.Params = testCase.params
+			userPort.EditUser(c)
+
+			assert.Equal(t, testCase.expectCode, response.Code)
+		})
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	t.Parallel()
+
+	userService := &mockUserService{}
+	testCases := []struct {
+		name        string
+		params      []gin.Param
+		req         *domain.SUser
+		sendMessage map[string]interface{}
+		setup       func()
+		expectCode  int
+		expectErr   error
+	}{
+		{
+			name: "success",
+			params: []gin.Param{
+				{
+					Key:   "userId",
+					Value: "first document",
+				},
+			},
+			req: &domain.SUser{Username: "testing", LimitPerDay: 20},
+			setup: func() {
+				userService = &mockUserService{}
+			},
+			expectCode: http.StatusOK,
+			expectErr:  nil,
+		},
+		{
+			name: "fail because fail in service layer",
+			params: []gin.Param{{
+				Key:   "userId",
+				Value: "first document",
+			}},
+			req: &domain.SUser{Username: "testing", LimitPerDay: 20},
+			setup: func() {
+				userService = &mockUserService{
+					err: errors.New("test fail"),
+				}
+			},
+			expectCode: http.StatusInternalServerError,
+			expectErr:  nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.setup()
+			userPort := &portsRestFulUser.SUserPort{
+				UserService: userService,
+			}
+
+			// Mock gin package
+			response, c := mockRestFul.MockSetup()
+			// mockRestFul.MockJsonPost(c, testCase.req)
+			c.Params = testCase.params
+			userPort.DeleteUser(c)
+
+			assert.Equal(t, testCase.expectCode, response.Code)
 		})
 	}
 }

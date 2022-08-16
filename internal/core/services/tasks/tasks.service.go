@@ -4,6 +4,7 @@ package serviceTasks
 
 import (
 	"errors"
+	"fmt"
 	"time"
 	"togo/internal/core/domain"
 	serviceUsers "togo/internal/core/services/users"
@@ -38,9 +39,11 @@ func (service *TaskService) CreateTask(task *domain.STask) (*domain.STask, error
 	beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
 
 	userErr := service.UserService.UserRepo.GetSingleData(user)
+
 	if userErr != nil {
 		return &domain.STask{}, userErr
 	}
+	fmt.Println("asdasdasd : ", user)
 
 	totalTodayTask, oldTaskErr := service.TaskRepo.GetAllTaskToday(&oldTask, task.UserID, beginningOfDay)
 

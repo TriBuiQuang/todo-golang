@@ -103,6 +103,11 @@ func (u *SUserPort) EditUser(c *gin.Context) {
 
 	c.BindJSON(user)
 
+	if user.Username == "" && user.LimitPerDay == 0 {
+		c.JSON(portsRestFul.PrintErrResponse(errors.New("must have username or limit_per_day value"), http.StatusBadRequest))
+		return
+	}
+
 	err := u.UserService.EditUser(user)
 
 	if err != nil {
@@ -111,7 +116,7 @@ func (u *SUserPort) EditUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":  200,
+		"status":  http.StatusOK,
 		"message": "User Edited Successfully",
 	})
 }

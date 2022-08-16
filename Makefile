@@ -11,8 +11,9 @@ test-coverage-with-validation:
 	go test ./tests/... -v -coverpkg=./internal/...
 
 test-coverage:
-	go test ./tests/...  -coverpkg=./internal/... -coverprofile ./coverage.out
+	go test --cover -covermode=count ./tests/...  -coverpkg=./internal/... -coverprofile ./coverage.out
 	go tool cover -func ./coverage.out
+	go tool cover -html=coverage.out -o coverage.html
 	rm -f coverage.out
 
 test-integration:
