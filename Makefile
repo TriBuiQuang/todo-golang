@@ -17,4 +17,7 @@ test-coverage:
 	rm -f coverage.out
 
 test-integration:
-	go test -test.v -test.run ^TestFeatures$
+	go test ./tests/integration/... -coverpkg=./internal/...
+
+test-cucumber: 
+	godog run ./tests/integration/
