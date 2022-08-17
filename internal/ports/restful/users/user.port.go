@@ -1,8 +1,9 @@
 package portsRestFulUser
 
 import (
+	"errors"
 	"net/http"
-	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
+	adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
 	"togo/internal/core/domain"
 	serviceUsers "togo/internal/core/services/users"
 	portsRestFul "togo/internal/ports/restful"
@@ -13,8 +14,8 @@ import (
 
 type SUserPort struct {
 	UserService interface {
-		GetAllUsers() ([]domain.SUser, int, error)
 		CreateUser(user *domain.SUser) (*domain.SUser, error)
+		GetAllUsers() ([]domain.SUser, int, error)
 		GetSingleUser(user *domain.SUser) error
 		EditUser(user *domain.SUser) error
 		DeleteUser(user *domain.SUser) error
@@ -36,7 +37,17 @@ func NewUserPort(db *pg.DB) *SUserPort {
 
 func (u *SUserPort) CreateUser(c *gin.Context) {
 	user := &domain.SUser{}
-	c.BindJSON(user)
+	err := c.BindJSON(user)
+
+	if err != nil {
+		c.JSON(portsRestFul.PrintErrResponse(err, http.StatusForbidden))
+		return
+	}
+
+	if user.Username == "" {
+		c.JSON(portsRestFul.PrintErrResponse(errors.New("this req is missing username "), http.StatusBadRequest))
+		return
+	}
 
 	newUser, err := u.UserService.CreateUser(user)
 	if err != nil {
@@ -84,7 +95,6 @@ func (u *SUserPort) GetSingleUser(c *gin.Context) {
 		"message": "Single User",
 		"data":    user,
 	})
-
 }
 
 func (u *SUserPort) EditUser(c *gin.Context) {
@@ -92,6 +102,11 @@ func (u *SUserPort) EditUser(c *gin.Context) {
 	user := &domain.SUser{ID: userId}
 
 	c.BindJSON(user)
+
+	if user.Username == "" && user.LimitPerDay == 0 {
+		c.JSON(portsRestFul.PrintErrResponse(errors.New("must have username or limit_per_day value"), http.StatusBadRequest))
+		return
+	}
 
 	err := u.UserService.EditUser(user)
 
@@ -101,10 +116,9 @@ func (u *SUserPort) EditUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":  200,
+		"status":  http.StatusOK,
 		"message": "User Edited Successfully",
 	})
-
 }
 
 func (u *SUserPort) DeleteUser(c *gin.Context) {

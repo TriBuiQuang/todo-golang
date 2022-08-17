@@ -1,6 +1,7 @@
 package adapterPostgresRepo
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -52,7 +53,7 @@ func (userRepo SUserRepo) GetAllData() ([]domain.SUser, int, error) {
 
 // Query get single user's data by ID in the database
 func (userRepo SUserRepo) GetSingleData(user *domain.SUser) error {
-
+	fmt.Println("go hererrere")
 	return userRepo.DB.Select(user)
 }
 

@@ -2,7 +2,7 @@ package portsRestFulTask
 
 import (
 	"net/http"
-	adapterPostgresRepo "togo/internal/adapter/postgressql/repositories"
+	adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
 	"togo/internal/core/domain"
 	serviceTasks "togo/internal/core/services/tasks"
 	serviceUsers "togo/internal/core/services/users"

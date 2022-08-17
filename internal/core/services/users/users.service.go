@@ -10,9 +10,9 @@ import (
 type UserService struct {
 	DB       *pg.DB
 	UserRepo interface {
+		CreateUser(user *domain.SUser) (*domain.SUser, error)
 		GetAllData() ([]domain.SUser, int, error)
 		GetSingleData(user *domain.SUser) error
-		CreateUser(user *domain.SUser) (*domain.SUser, error)
 		EditData(user *domain.SUser) error
 		DeleteData(user *domain.SUser) error
 	}

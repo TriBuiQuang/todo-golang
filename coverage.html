@@ -1,0 +1,955 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>repositories: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">togo/internal/adapter/postgresql/repositories/index.postgres.repo.go (0.0%)</option>
+				
+				<option value="file1">togo/internal/adapter/postgresql/repositories/tasks.postgres.repo.go (0.0%)</option>
+				
+				<option value="file2">togo/internal/adapter/postgresql/repositories/todo.postgres.repo.go (0.0%)</option>
+				
+				<option value="file3">togo/internal/adapter/postgresql/repositories/user.postgres.repo.go (0.0%)</option>
+				
+				<option value="file4">togo/internal/core/domain/task.domain.go (0.0%)</option>
+				
+				<option value="file5">togo/internal/core/domain/user.domain.go (0.0%)</option>
+				
+				<option value="file6">togo/internal/core/services/healthcheck/ping.service.go (100.0%)</option>
+				
+				<option value="file7">togo/internal/core/services/tasks/tasks.service.go (61.5%)</option>
+				
+				<option value="file8">togo/internal/core/services/users/users.service.go (100.0%)</option>
+				
+				<option value="file9">togo/internal/ports/restful/index.port.go (100.0%)</option>
+				
+				<option value="file10">togo/internal/ports/restful/tasks/task.port.go (100.0%)</option>
+				
+				<option value="file11">togo/internal/ports/restful/users/user.port.go (95.6%)</option>
+				
+				<option value="file12">togo/internal/ports/restful/validate.port.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package adapterPostgresRepo
+
+import (
+        "github.com/go-pg/pg/v9"
+)
+
+// Giao tiep voi db (nhu may cau insert)
+
+var PostgresConnect *pg.DB
+
+func InitiateDB(db *pg.DB) <span class="cov0" title="0">{
+        PostgresConnect = db
+}</span>
+
+func CreateAllTable(db *pg.DB) error <span class="cov0" title="0">{
+        UserCreateTable(db)
+        TaskCreateTable(db)
+        TodoCreateTable(db)
+        return nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package adapterPostgresRepo
+
+import (
+        "log"
+        "time"
+
+        "togo/internal/core/domain"
+
+        "github.com/go-pg/pg/v9"
+        orm "github.com/go-pg/pg/v9/orm"
+)
+
+type STaskRepo struct {
+        DB *pg.DB
+}
+
+// Create User Table
+func TaskCreateTable(db *pg.DB) error <span class="cov0" title="0">{
+        opts := &amp;orm.CreateTableOptions{IfNotExists: true}
+
+        createError := db.CreateTable(&amp;domain.STask{}, opts)
+
+        if createError != nil </span><span class="cov0" title="0">{
+                log.Printf("Error while creating task table, Reason: %v\n", createError)
+                return createError
+        }</span>
+        <span class="cov0" title="0">log.Printf("Task table created")
+
+        return nil</span>
+}
+
+// Insert new task data to database
+func (taskRepo STaskRepo) CreateData(task *domain.STask) (*domain.STask, error) <span class="cov0" title="0">{
+        // id := guuid.New().String()
+        // now := time.Now()
+
+        // newData := domain.STask{
+        //         ID:        id,
+        //         UserID:    taskRepo.Task.UserID,
+        //         Name:      taskRepo.Task.Name,
+        //         CreatedAt: now,
+        //         UpdatedAt: now,
+        // }
+
+        // err := PostgresConnect.Insert(&amp;newData)
+
+        now := time.Now()
+        task.CreatedAt = now
+        task.UpdatedAt = now
+
+        err := taskRepo.DB.Insert(task)
+
+        return task, err
+}</span>
+
+// Query get all task's data in the database
+func (taskRepo STaskRepo) GetAllData() ([]domain.STask, int, error) <span class="cov0" title="0">{
+        tasks := []domain.STask{}
+
+        count, err := taskRepo.DB.Model(&amp;tasks).SelectAndCount()
+
+        return tasks, count, err
+}</span>
+
+func (taskRepo STaskRepo) GetAllTaskToday(tasks *[]domain.STask, userId string, beginningOfDay time.Time) (int, error) <span class="cov0" title="0">{
+
+        return taskRepo.DB.Model(tasks).Where("user_id = ?", userId).Where("created_at &gt;= ?", beginningOfDay).SelectAndCount()
+}</span>
+
+// Query get single task's data by ID in the database
+func (taskRepo STaskRepo) GetSingleData(task *domain.STask) error <span class="cov0" title="0">{
+
+        return taskRepo.DB.Select(task)
+}</span>
+
+// Query get all task's data in the database
+func (taskRepo STaskRepo) DeleteData(task *domain.STask) error <span class="cov0" title="0">{
+
+        return PostgresConnect.Delete(task)
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package adapterPostgresRepo
+
+import (
+        "log"
+        "time"
+
+        "togo/internal/core/domain"
+
+        "github.com/go-pg/pg/v9"
+        orm "github.com/go-pg/pg/v9/orm"
+        guuid "github.com/google/uuid"
+)
+
+// Giao tiep voi db (nhu may cau insert)
+
+// INITIALIZE DB CONNECTION (TO AVOID TOO MANY CONNECTION)
+// var dbConnect *pg.DB
+
+// func InitiateDB(db *pg.DB) {
+//         dbConnect = db
+// }
+
+// Create User Table
+func TodoCreateTable(db *pg.DB) error <span class="cov0" title="0">{
+        opts := &amp;orm.CreateTableOptions{IfNotExists: true}
+
+        createError := db.CreateTable(&amp;domain.STodo{}, opts)
+
+        if createError != nil </span><span class="cov0" title="0">{
+                log.Printf("Error while creating todo table, Reason: %v\n", createError)
+                return createError
+        }</span>
+        <span class="cov0" title="0">log.Printf("Todo table created")
+
+        return nil</span>
+}
+
+// Query get all todo's data in the database
+func TodoQueryGetAllData(todos *[]domain.STodo) error <span class="cov0" title="0">{
+        err := PostgresConnect.Model(todos).Select()
+
+        return err
+}</span>
+
+// Insert new todo data to database
+func TodoQueryCreateData(title, body, completed string) (domain.STodo, error) <span class="cov0" title="0">{
+        id := guuid.New().String()
+        now := time.Now()
+
+        newData := domain.STodo{
+                ID:        id,
+                Title:     title,
+                Body:      body,
+                Completed: completed,
+                CreatedAt: now,
+                UpdatedAt: now,
+        }
+
+        err := PostgresConnect.Insert(&amp;newData)
+
+        return newData, err
+}</span>
+
+// Query get single todo's data by ID in the database
+func TodoQueryGetSingleData(todo *domain.STodo) error <span class="cov0" title="0">{
+        err := PostgresConnect.Select(todo)
+
+        return err
+}</span>
+
+// Query get all todo's data in the database
+func TodoQueryEditData(todoId, completed string) error <span class="cov0" title="0">{
+        _, err := PostgresConnect.Model(&amp;domain.STodo{}).Set("completed = ?", completed, "updated_at = ?", time.Now()).Where("id = ?", todoId).Update()
+
+        return err
+}</span>
+
+// Query get all todo's data in the database
+func TodoQueryDeleteData(todo *domain.STodo) error <span class="cov0" title="0">{
+
+        return PostgresConnect.Delete(todo)
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package adapterPostgresRepo
+
+import (
+        "fmt"
+        "log"
+        "time"
+
+        "togo/internal/core/domain"
+
+        "github.com/go-pg/pg/v9"
+        orm "github.com/go-pg/pg/v9/orm"
+)
+
+type SUserRepo struct {
+        DB *pg.DB
+}
+
+// Create User Table
+func UserCreateTable(db *pg.DB) error <span class="cov0" title="0">{
+        opts := &amp;orm.CreateTableOptions{IfNotExists: true}
+
+        createError := db.CreateTable(&amp;domain.SUser{}, opts)
+
+        if createError != nil </span><span class="cov0" title="0">{
+                log.Printf("Error while creating user table, Reason: %v\n", createError)
+                return createError
+        }</span>
+        <span class="cov0" title="0">log.Printf("User table created")
+
+        return nil</span>
+}
+
+// Insert new user data to database
+func (userRepo SUserRepo) CreateUser(user *domain.SUser) (*domain.SUser, error) <span class="cov0" title="0">{
+        now := time.Now()
+        user.CreatedAt = now
+        user.UpdatedAt = now
+
+        err := userRepo.DB.Insert(user)
+
+        return user, err
+}</span>
+
+// Query get all user's data in the database
+func (userRepo SUserRepo) GetAllData() ([]domain.SUser, int, error) <span class="cov0" title="0">{
+
+        users := []domain.SUser{}
+
+        count, err := userRepo.DB.Model(&amp;users).SelectAndCount()
+        // count, err := PostgresConnect.Model(users).SelectAndCount()
+        return users, count, err
+}</span>
+
+// Query get single user's data by ID in the database
+func (userRepo SUserRepo) GetSingleData(user *domain.SUser) error <span class="cov0" title="0">{
+        fmt.Println("go hererrere")
+        return userRepo.DB.Select(user)
+}</span>
+
+// Query get all user's data in the database
+func (userRepo SUserRepo) EditData(user *domain.SUser) error <span class="cov0" title="0">{
+
+        _, err := userRepo.DB.Model(user).
+                Set("username = ?", user.Username).
+                Set(`limit_per_day = ?`, user.LimitPerDay).
+                Set("updated_at = ?", time.Now()).
+                Where("id = ?", user.ID).
+                Update()
+
+        return err
+}</span>
+
+// Query get all user's data in the database
+func (userRepo SUserRepo) DeleteData(user *domain.SUser) error <span class="cov0" title="0">{
+
+        return userRepo.DB.Delete(user)
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package domain
+
+import "time"
+
+// album represents data about a record album.
+type STask struct {
+        tableName struct{}  `pg:"tasks"`         // default values are the same
+        ID        string    `pg:",pk" json:"id"` // ID is primary key
+        UserID    string    `pg:"rel:has-one" json:"user_id"`
+        Name      string    `json:"name"`
+        CreatedAt time.Time `pg:"default:now()" json:"created_at"`
+        UpdatedAt time.Time `pg:"default:now()" json:"updated_at"`
+}
+
+func (STask) TableName() string <span class="cov0" title="0">{
+        return "tasks"
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package domain
+
+import "time"
+
+// album represents data about a record album.
+type SUser struct {
+        tableName   struct{}  `pg:"users"`                   // default values are the same
+        ID          string    `pg:",pk" json:"id"`           // ID is primary key
+        Username    string    `pg:",unique" json:"username"` // username is unique
+        LimitPerDay int       `pg:"default:10" json:"limit_per_day"`
+        CreatedAt   time.Time `pg:"default:now()" json:"created_at"`
+        UpdatedAt   time.Time `pg:"default:now()" json:"updated_at"`
+}
+
+func (SUser) TableName() string <span class="cov0" title="0">{
+        return "users"
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package servicesHealthCheck
+
+import (
+        "time"
+)
+
+type pingResponse struct {
+        URL  string    `json:"url"`
+        Date time.Time `json:"date"`
+}
+
+func GetPing() pingResponse <span class="cov8" title="1">{
+
+        return pingResponse{
+                URL:  "/api/ping",
+                Date: time.Now(),
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package serviceTasks
+
+// func CreateNewTask
+
+import (
+        "errors"
+        "fmt"
+        "time"
+        "togo/internal/core/domain"
+        serviceUsers "togo/internal/core/services/users"
+
+        "github.com/go-pg/pg/v9"
+        "github.com/google/uuid"
+)
+
+type TaskService struct {
+        DB       *pg.DB
+        TaskRepo interface {
+                CreateData(task *domain.STask) (*domain.STask, error)
+                GetAllData() ([]domain.STask, int, error)
+                GetAllTaskToday(task *[]domain.STask, userId string, beginningOfDay time.Time) (int, error)
+                GetSingleData(task *domain.STask) error
+                DeleteData(task *domain.STask) error
+        }
+        UserService serviceUsers.UserService
+}
+
+// Bushiness for create new task
+func (service *TaskService) CreateTask(task *domain.STask) (*domain.STask, error) <span class="cov10" title="3">{
+        var oldTask []domain.STask
+        task.ID = uuid.New().String()
+
+        user := &amp;domain.SUser{ID: task.UserID}
+        now := time.Now()
+
+        currentYear, currentMonth, currentDay := now.Date()
+        currentLocation := now.Location()
+
+        beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
+
+        userErr := service.UserService.UserRepo.GetSingleData(user)
+
+        if userErr != nil </span><span class="cov1" title="1">{
+                return &amp;domain.STask{}, userErr
+        }</span>
+        <span class="cov6" title="2">fmt.Println("asdasdasd : ", user)
+
+        totalTodayTask, oldTaskErr := service.TaskRepo.GetAllTaskToday(&amp;oldTask, task.UserID, beginningOfDay)
+
+        if oldTaskErr != nil </span><span class="cov1" title="1">{
+                return &amp;domain.STask{}, oldTaskErr
+        }</span>
+
+        <span class="cov1" title="1">if totalTodayTask != 0 &amp;&amp; totalTodayTask &gt;= user.LimitPerDay </span><span class="cov0" title="0">{
+                return &amp;domain.STask{}, errors.New("this user is out of the limit in order to create a new task. ")
+        }</span>
+
+        <span class="cov1" title="1">return service.TaskRepo.CreateData(task)</span>
+}
+
+func (service *TaskService) GetAllTasks() ([]domain.STask, int, error) <span class="cov0" title="0">{
+
+        return service.TaskRepo.GetAllData()
+}</span>
+
+func (service *TaskService) GetAllTaskToday(tasks *[]domain.STask, userId string) (*[]domain.STask, int, error) <span class="cov0" title="0">{
+        now := time.Now()
+
+        currentYear, currentMonth, currentDay := now.Date()
+        currentLocation := now.Location()
+
+        beginningOfDay := time.Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0, currentLocation)
+
+        count, err := service.TaskRepo.GetAllTaskToday(tasks, userId, beginningOfDay)
+
+        return tasks, count, err
+}</span>
+
+func (service *TaskService) GetSingleTask(task *domain.STask) error <span class="cov0" title="0">{
+
+        return service.TaskRepo.GetSingleData(task)
+}</span>
+
+func (service *TaskService) DeleteTask(task *domain.STask) error <span class="cov0" title="0">{
+
+        return service.TaskRepo.DeleteData(task)
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package serviceUsers
+
+import (
+        "togo/internal/core/domain"
+
+        "github.com/go-pg/pg/v9"
+        "github.com/google/uuid"
+)
+
+type UserService struct {
+        DB       *pg.DB
+        UserRepo interface {
+                CreateUser(user *domain.SUser) (*domain.SUser, error)
+                GetAllData() ([]domain.SUser, int, error)
+                GetSingleData(user *domain.SUser) error
+                EditData(user *domain.SUser) error
+                DeleteData(user *domain.SUser) error
+        }
+}
+
+// Business for create new user
+func (service *UserService) CreateUser(user *domain.SUser) (*domain.SUser, error) <span class="cov8" title="1">{
+        user.ID = uuid.New().String()
+
+        return service.UserRepo.CreateUser(user)
+}</span>
+
+// Bushiness for get all user
+func (service *UserService) GetAllUsers() ([]domain.SUser, int, error) <span class="cov8" title="1">{
+
+        return service.UserRepo.GetAllData()
+}</span>
+
+func (service *UserService) GetSingleUser(user *domain.SUser) error <span class="cov8" title="1">{
+
+        return service.UserRepo.GetSingleData(user)
+}</span>
+
+func (service *UserService) EditUser(user *domain.SUser) error <span class="cov8" title="1">{
+
+        return service.UserRepo.EditData(user)
+}</span>
+
+func (service *UserService) DeleteUser(user *domain.SUser) error <span class="cov8" title="1">{
+
+        return service.UserRepo.DeleteData(user)
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package portsRestFul
+
+import (
+        "fmt"
+        "log"
+        servicesHealthCheck "togo/internal/core/services/healthcheck"
+
+        "net/http"
+
+        "github.com/gin-gonic/gin"
+)
+
+func Welcome(c *gin.Context) <span class="cov1" title="1">{
+        c.JSON(http.StatusOK, gin.H{
+                "status":  200,
+                "message": "Welcome To API",
+        })
+}</span>
+
+func NotFound(c *gin.Context) <span class="cov1" title="1">{
+        c.JSON(http.StatusNotFound, gin.H{
+                "status":  404,
+                "message": "Route Not Found",
+        })
+}</span>
+
+func HealthCheck(c *gin.Context) <span class="cov1" title="1">{
+        fmt.Println("data gin.context: ", c.Request.URL)
+        ping := servicesHealthCheck.GetPing()
+
+        c.IndentedJSON(http.StatusOK, ping)
+}</span>
+
+/**  Only handle print error message:
+ *        - 1xx: Informational - Request received, continuing process
+ *        - 2xx: Success - The action was successfully received, understood, and accepted
+ *        - 3xx: Redirection - Further action must be taken in order to complete the request
+ *        - 4xx: Client Error - The request contains bad syntax or cannot be fulfilled
+ *        - 5xx: Server Error - The server failed to fulfill an apparently valid request
+ */
+func PrintErrResponse(err error, httpStatus int) (int, map[string]any) <span class="cov10" title="20">{
+        var errMessage string
+        errStatusCode := httpStatus
+
+        log.Printf("Error - Reason: %v\n", err)
+        switch errStatusCode </span>{
+        case 100:<span class="cov1" title="1">
+                errMessage = "Information - " + err.Error()</span>
+        case 200:<span class="cov1" title="1">
+                errMessage = "Success - " + err.Error()</span>
+        case 300:<span class="cov1" title="1">
+                errMessage = "Redirection - " + err.Error()</span>
+        case 400:<span class="cov6" title="6">
+                errMessage = "Client error - " + err.Error()</span>
+        case 500:<span class="cov7" title="8">
+                errMessage = "Server Error - " + err.Error()</span>
+        default:<span class="cov4" title="3">
+                errMessage = "Don't have this status code- everything good - " + err.Error()</span>
+        }
+
+        <span class="cov10" title="20">errResponse := map[string]any{
+                "status":  errStatusCode,
+                "message": errMessage,
+        }
+
+        return errStatusCode, errResponse</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package portsRestFulTask
+
+import (
+        "net/http"
+        adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
+        "togo/internal/core/domain"
+        serviceTasks "togo/internal/core/services/tasks"
+        serviceUsers "togo/internal/core/services/users"
+        portsRestFul "togo/internal/ports/restful"
+
+        "github.com/gin-gonic/gin"
+        "github.com/go-pg/pg/v9"
+)
+
+type STaskPort struct {
+        TaskService interface {
+                CreateTask(task *domain.STask) (*domain.STask, error)
+                GetAllTasks() ([]domain.STask, int, error)
+                GetAllTaskToday(tasks *[]domain.STask, userId string) (*[]domain.STask, int, error)
+                GetSingleTask(task *domain.STask) error
+                DeleteTask(task *domain.STask) error
+        }
+}
+
+func NewTaskPort(db *pg.DB) *STaskPort <span class="cov1" title="1">{
+        taskService := &amp;serviceTasks.TaskService{
+                DB: db,
+                TaskRepo: &amp;adapterPostgresRepo.STaskRepo{
+                        DB: db,
+                },
+                UserService: serviceUsers.UserService{
+                        DB: db,
+                        UserRepo: &amp;adapterPostgresRepo.SUserRepo{
+                                DB: db,
+                        },
+                },
+        }
+
+        return &amp;STaskPort{
+                TaskService: taskService,
+        }
+}</span>
+
+func (t *STaskPort) CreateTask(c *gin.Context) <span class="cov10" title="6">{
+        task := &amp;domain.STask{}
+        c.BindJSON(task)
+
+        if portsRestFul.ValidateCreateTask(c, task) </span><span class="cov6" title="3">{
+                return
+        }</span>
+
+        <span class="cov6" title="3">newTask, err := t.TaskService.CreateTask(task)
+
+        if err != nil </span><span class="cov4" title="2">{
+                if err.Error() == "this user is out of the limit in order to create a new task. " </span><span class="cov1" title="1">{
+                        c.JSON(portsRestFul.PrintErrResponse(err, http.StatusBadRequest))
+                }</span> else<span class="cov1" title="1"> {
+                        c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+                }</span>
+
+                <span class="cov4" title="2">return</span>
+        }
+
+        <span class="cov1" title="1">c.JSON(http.StatusCreated, gin.H{
+                "status":  http.StatusCreated,
+                "message": "Task created Successfully",
+                "data":    newTask,
+        })</span>
+}
+
+func (t *STaskPort) GetAllTasks(c *gin.Context) <span class="cov4" title="2">{
+        tasks, totalTasks, err := t.TaskService.GetAllTasks()
+
+        if err != nil </span><span class="cov1" title="1">{
+
+                c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+                return
+        }</span>
+
+        <span class="cov1" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":     http.StatusOK,
+                "message":    "All Tasks",
+                "total_task": totalTasks,
+                "data":       tasks,
+        })</span>
+}
+
+func (t *STaskPort) GetSingleTask(c *gin.Context) <span class="cov4" title="2">{
+        taskId := c.Param("taskId")
+        task := &amp;domain.STask{ID: taskId}
+
+        err := t.TaskService.GetSingleTask(task)
+
+        if err != nil </span><span class="cov1" title="1">{
+                c.JSON(portsRestFul.PrintErrResponse(err, http.StatusNotFound))
+                return
+        }</span>
+
+        <span class="cov1" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":  http.StatusOK,
+                "message": "Single Task",
+                "data":    task,
+        })</span>
+}
+
+func (t *STaskPort) DeleteTask(c *gin.Context) <span class="cov4" title="2">{
+        taskId := c.Param("taskId")
+        userId := c.Param("userId")
+        task := &amp;domain.STask{ID: taskId, UserID: userId}
+
+        err := t.TaskService.DeleteTask(task)
+
+        if err != nil </span><span class="cov1" title="1">{
+                c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+                return
+        }</span>
+
+        <span class="cov1" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":  http.StatusOK,
+                "message": "Task deleted successfully",
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package portsRestFulUser
+
+import (
+        "errors"
+        "net/http"
+        adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
+        "togo/internal/core/domain"
+        serviceUsers "togo/internal/core/services/users"
+        portsRestFul "togo/internal/ports/restful"
+
+        "github.com/gin-gonic/gin"
+        "github.com/go-pg/pg/v9"
+)
+
+type SUserPort struct {
+        UserService interface {
+                CreateUser(user *domain.SUser) (*domain.SUser, error)
+                GetAllUsers() ([]domain.SUser, int, error)
+                GetSingleUser(user *domain.SUser) error
+                EditUser(user *domain.SUser) error
+                DeleteUser(user *domain.SUser) error
+        }
+}
+
+func NewUserPort(db *pg.DB) *SUserPort <span class="cov1" title="1">{
+        userService := &amp;serviceUsers.UserService{
+                DB: db,
+                UserRepo: &amp;adapterPostgresRepo.SUserRepo{
+                        DB: db,
+                },
+        }
+
+        return &amp;SUserPort{
+                UserService: userService,
+        }
+}</span>
+
+func (u *SUserPort) CreateUser(c *gin.Context) <span class="cov10" title="5">{
+        user := &amp;domain.SUser{}
+        err := c.BindJSON(user)
+
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(portsRestFul.PrintErrResponse(err, http.StatusForbidden))
+                return
+        }</span>
+
+        <span class="cov10" title="5">if user.Username == "" </span><span class="cov7" title="3">{
+                c.JSON(portsRestFul.PrintErrResponse(errors.New("this req is missing username "), http.StatusBadRequest))
+                return
+        }</span>
+
+        <span class="cov4" title="2">newUser, err := u.UserService.CreateUser(user)
+        if err != nil </span><span class="cov1" title="1">{
+                c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+                return
+        }</span>
+
+        <span class="cov1" title="1">c.JSON(http.StatusCreated, gin.H{
+                "status":  http.StatusCreated,
+                "message": "User created Successfully",
+                "data":    newUser,
+        })</span>
+}
+
+func (u *SUserPort) GetAllUsers(c *gin.Context) <span class="cov4" title="2">{
+        users, totalUsers, err := u.UserService.GetAllUsers()
+
+        if err != nil </span><span class="cov1" title="1">{
+
+                c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+                return
+        }</span>
+
+        <span class="cov1" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":     http.StatusOK,
+                "message":    "All Users",
+                "total_user": totalUsers,
+                "data":       users,
+        })</span>
+}
+
+func (u *SUserPort) GetSingleUser(c *gin.Context) <span class="cov4" title="2">{
+        userId := c.Param("userId")
+        user := &amp;domain.SUser{ID: userId}
+
+        err := u.UserService.GetSingleUser(user)
+
+        if err != nil </span><span class="cov1" title="1">{
+                c.JSON(portsRestFul.PrintErrResponse(err, http.StatusNotFound))
+                return
+        }</span>
+
+        <span class="cov1" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":  http.StatusOK,
+                "message": "Single User",
+                "data":    user,
+        })</span>
+}
+
+func (u *SUserPort) EditUser(c *gin.Context) <span class="cov7" title="3">{
+        userId := c.Param("userId")
+        user := &amp;domain.SUser{ID: userId}
+
+        c.BindJSON(user)
+
+        if user.Username == "" &amp;&amp; user.LimitPerDay == 0 </span><span class="cov1" title="1">{
+                c.JSON(portsRestFul.PrintErrResponse(errors.New("must have username or limit_per_day value"), http.StatusBadRequest))
+                return
+        }</span>
+
+        <span class="cov4" title="2">err := u.UserService.EditUser(user)
+
+        if err != nil </span><span class="cov1" title="1">{
+                c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+                return
+        }</span>
+
+        <span class="cov1" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":  http.StatusOK,
+                "message": "User Edited Successfully",
+        })</span>
+}
+
+func (u *SUserPort) DeleteUser(c *gin.Context) <span class="cov4" title="2">{
+        userId := c.Param("userId")
+        user := &amp;domain.SUser{ID: userId}
+
+        err := u.UserService.DeleteUser(user)
+
+        if err != nil </span><span class="cov1" title="1">{
+                c.JSON(portsRestFul.PrintErrResponse(err, http.StatusInternalServerError))
+                return
+        }</span>
+
+        <span class="cov1" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":  http.StatusOK,
+                "message": "User deleted successfully",
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package portsRestFul
+
+import (
+        "net/http"
+        "togo/internal/core/domain"
+
+        "github.com/gin-gonic/gin"
+)
+
+/*
+Validate receive json data , if doesn't have name and user_id return true, otherwise return false
+*/
+func ValidateCreateTask(c *gin.Context, task *domain.STask) bool <span class="cov10" title="11">{
+        if task.Name == "" || task.UserID == "" </span><span class="cov8" title="7">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "status":  http.StatusBadRequest,
+                        "message": "Name or user_id must not empty",
+                })
+                return true
+        }</span>
+        <span class="cov6" title="4">return false</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

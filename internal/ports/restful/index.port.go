@@ -55,7 +55,7 @@ func PrintErrResponse(err error, httpStatus int) (int, map[string]any) {
 	case 500:
 		errMessage = "Server Error - " + err.Error()
 	default:
-		errMessage = "Don't have this status code- everything good" + err.Error()
+		errMessage = "Don't have this status code- everything good - " + err.Error()
 	}
 
 	errResponse := map[string]any{
