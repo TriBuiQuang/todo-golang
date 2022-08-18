@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.15.8
-// source: internal/ports/grpc/ping.port.proto
+// source: ping.proto
 
-package portsGRPC
+package pb
 
 import (
 	context "context"
@@ -35,7 +35,7 @@ func NewHealthcheckClient(cc grpc.ClientConnInterface) HealthcheckClient {
 
 func (c *healthcheckClient) GetPing(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
 	out := new(PingResponse)
-	err := c.cc.Invoke(ctx, "/portsGRPC.Healthcheck/GetPing", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pingProto.Healthcheck/GetPing", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func _Healthcheck_GetPing_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/portsGRPC.Healthcheck/GetPing",
+		FullMethod: "/pingProto.Healthcheck/GetPing",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(HealthcheckServer).GetPing(ctx, req.(*PingRequest))
@@ -92,7 +92,7 @@ func _Healthcheck_GetPing_Handler(srv interface{}, ctx context.Context, dec func
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Healthcheck_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "portsGRPC.Healthcheck",
+	ServiceName: "pingProto.Healthcheck",
 	HandlerType: (*HealthcheckServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -101,5 +101,5 @@ var Healthcheck_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "internal/ports/grpc/ping.port.proto",
+	Metadata: "ping.proto",
 }

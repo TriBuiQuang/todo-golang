@@ -29,7 +29,7 @@ test-cucumber:
 	godog run ./tests/integration/
 
 gen-grpc: 
-	rm -f ./internal/ports/grpc/*.go
-	protoc --go_out=. --go_opt=paths=source_relative\
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative\
-		./internal/ports/grpc/*.proto
+	rm -f ./pkg/grpc/*.go
+	protoc --proto_path=proto --go_out=pkg/grpc --go_opt=paths=source_relative\
+		--go-grpc_out=pkg/grpc --go-grpc_opt=paths=source_relative\
+		./proto/*.proto

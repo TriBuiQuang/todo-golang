@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 	"time"
-	portsGRPC "togo/internal/ports/grpc"
+	pb "togo/pkg/grpc"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -22,13 +22,13 @@ func ConnectGRPCClient() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := portsGRPC.NewHealthcheckClient(conn)
+	c := pb.NewHealthcheckClient(conn)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	r, err := c.GetPing(ctx, &portsGRPC.PingRequest{})
+	r, err := c.GetPing(ctx, &pb.PingRequest{})
 	if err != nil {
 		log.Fatalf("could not ping: %v", err)
 	}

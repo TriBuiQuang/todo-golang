@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-option go_package="togo/internal/ports/portsGRPC";
+option go_package="togo/proto;pb";
 
-package portsGRPC;
+package pingProto;
 
 import "google/protobuf/timestamp.proto";
 
