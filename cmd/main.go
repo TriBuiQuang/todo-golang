@@ -1,21 +1,28 @@
 package main
 
 import (
-	"log"
+	"flag"
+	cmdGRPCClient "togo/cmd/grpc/client"
+	cmdGRPCServer "togo/cmd/grpc/server"
 	cmdRestFulRoutes "togo/cmd/restful"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Connect postgres database
-	// db := adapterPostgres.ConnectDatabase()
+	// Get arg from command line
+	wordArgCommand := flag.String("protocol", "default value", "a string for description")
+	flag.Parse()
 
-	// Init Router
-	router := gin.Default()
+	switch *wordArgCommand {
+	case "server":
+		cmdGRPCServer.ConnectGRPCServer()
+		return
+	case "client":
+		cmdGRPCClient.ConnectGRPCClient()
+		return
+	default:
+		cmdRestFulRoutes.ConnectRestFull()
+		return
 
-	// Route Handlers / Endpoints
-	cmdRestFulRoutes.Routes(router)
+	}
 
-	log.Fatal(router.Run("localhost:8080"))
 }

@@ -1,6 +1,12 @@
 start:
 	go run cmd/main.go
 
+start-server:
+	go run cmd/main.go -protocol=server
+
+start-client:
+	go run cmd/main.go -protocol=client
+
 test-unit:
 	go test ./tests/unit/... -coverpkg=./internal/...
 
@@ -23,6 +29,7 @@ test-cucumber:
 	godog run ./tests/integration/
 
 gen-grpc: 
-	protoc --go_out=./internal/ports/grpc/ --go_opt=paths=source_relative \
-	 --go-grpc_out=./internal/ports/grpc/ --go-grpc_opt=paths=source_relative \
-	 ./internal/ports/grpc/ping.port.proto
+	rm -f ./internal/ports/grpc/*.go
+	protoc --go_out=. --go_opt=paths=source_relative\
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative\
+		./internal/ports/grpc/*.proto
