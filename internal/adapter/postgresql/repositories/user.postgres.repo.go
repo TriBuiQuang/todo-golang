@@ -42,9 +42,9 @@ func (userRepo SUserRepo) CreateUser(user *domain.SUser) (*domain.SUser, error) 
 }
 
 // Query get all user's data in the database
-func (userRepo SUserRepo) GetAllData() ([]domain.SUser, int, error) {
+func (userRepo SUserRepo) GetAllData() ([]*domain.SUser, int, error) {
 
-	users := []domain.SUser{}
+	users := []*domain.SUser{}
 
 	count, err := userRepo.DB.Model(&users).SelectAndCount()
 	// count, err := PostgresConnect.Model(users).SelectAndCount()

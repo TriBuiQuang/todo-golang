@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option go_package="togo/proto;pb";
+
+package todo;
+
+import "google/protobuf/timestamp.proto";
+
+// Interface exported by the server.
+message Task {
+   string id = 1;
+   string user_id = 2;
+   string name = 3;
+   google.protobuf.Timestamp created_at = 4; 
+   google.protobuf.Timestamp updated_at = 5; 
+}
+
+message GetAllTasksReq {}
+message GetAllTasksRes {
+   repeated Task task = 1;
+   int64 total_task = 2;
+}
+
+message GetSingleTaskReq {
+   string task_id = 1; 
+}
+message GetSingleTaskRes {
+   Task task = 1;
+}
+
+message CreateTaskReq {
+   string user_id = 1;
+   string name = 2;
+}
+message CreateTaskRes {
+   Task task = 1;
+}
+
+message DeleteTaskReq {
+   string task_id = 1;
+   string user_id = 2;
+}
+message DeleteTaskRes {
+   Task task = 1;
+}
+
+service TaskReaderService {
+   rpc GetAllTasks(GetAllTasksReq) returns (GetAllTasksRes);
+   rpc GetSingleTask(GetSingleTaskReq) returns (GetSingleTaskRes);
+}
+
+service TaskWriteService {
+   rpc CreateTask(CreateTaskReq) returns (CreateTaskRes);
+   rpc DeleteTask(DeleteTaskReq) returns (DeleteTaskRes);
+}

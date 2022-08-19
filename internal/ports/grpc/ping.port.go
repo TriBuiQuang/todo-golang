@@ -13,5 +13,6 @@ func (s *Server) GetPing(ctx context.Context, in *pb.PingRequest) (*pb.PingRespo
 	result := servicesHealthCheck.GetPing()
 	timestamp := timestamppb.New(result.Date)
 	log.Printf("Received: %v", result)
+
 	return &pb.PingResponse{Url: result.URL, Date: timestamp}, nil
 }

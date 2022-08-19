@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+option go_package="togo/proto;pb";
+
+package todo;
+
+import "google/protobuf/timestamp.proto";
+
+// Interface exported by the server.
+message User {
+   string id = 1;
+   string username = 2;
+   int64 limit_per_day = 3;
+   google.protobuf.Timestamp created_at = 4; 
+   google.protobuf.Timestamp updated_at = 5; 
+}
+
+message GetAllUsersReq {}
+message GetAllUsersRes {
+   repeated User User = 1;
+   int64 total_user = 2;
+}
+
+message GetSingleUserReq {
+   string user_id = 1; 
+}
+message GetSingleUserRes {
+   User user = 1;
+}
+
+message CreateUserReq {
+   string username = 1;
+   int64 limit_per_day = 2;
+}
+message CreateUserRes {
+   User user = 1;
+}
+message EditUserReq {
+   string user_id = 1;
+}
+message EditUserRes {
+   User user = 1;
+}
+message DeleteUserReq {
+   string user_id = 1;
+}
+message DeleteUserRes {
+   User user = 1;
+}
+
+service UserReaderService {
+   rpc GetAllUsers(GetAllUsersReq) returns (GetAllUsersRes);
+   rpc GetSingleUser(GetSingleUserReq) returns (GetSingleUserRes);
+}
+
+service UserWriteService {
+   rpc CreateUser(CreateUserReq) returns (CreateUserRes);
+   rpc EditUser(EditUserReq) returns (EditUserRes);
+   rpc DeleteUser(DeleteUserReq) returns (DeleteUserRes);
+}
