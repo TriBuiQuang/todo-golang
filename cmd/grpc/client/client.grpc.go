@@ -3,6 +3,7 @@ package cmdGRPCClient
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"time"
 	pb "togo/pkg/grpc"
@@ -34,4 +35,10 @@ func ConnectGRPCClient() {
 	}
 	log.Printf("Ping: %s - %s", r.GetUrl(), r.GetDate())
 
+	taskConn := pb.NewTaskReaderServiceClient(conn)
+	tasks, err := taskConn.GetAllTasks(ctx, &pb.GetAllTasksReq{})
+	if err != nil {
+		log.Fatalf("could not get all tasks: %v", err)
+	}
+	fmt.Println("Get all taskkss: ", tasks)
 }

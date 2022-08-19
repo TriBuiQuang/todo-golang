@@ -7,6 +7,8 @@ import (
 	"net"
 	portsGRPC "togo/internal/ports/grpc"
 	pb "togo/pkg/grpc"
+
+	"github.com/go-pg/pg/v9"
 )
 
 var (
@@ -24,13 +26,13 @@ type server struct {
 // 	return &pb.PingResponse{Url: result.URL, Date: timestamp}, nil
 // }
 
-func ConnectGRPCServer() {
+func ConnectGRPCServer(db *pg.DB) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	server := portsGRPC.NewServer()
+	server := portsGRPC.NewServer(db)
 
 	log.Printf("server listening at %v", lis.Addr())
 	if err := server.Serve(lis); err != nil {

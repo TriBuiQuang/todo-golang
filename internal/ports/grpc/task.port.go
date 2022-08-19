@@ -2,6 +2,7 @@ package portsGRPC
 
 import (
 	"context"
+	"fmt"
 	"log"
 	adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
 	"togo/internal/core/domain"
@@ -14,6 +15,8 @@ import (
 )
 
 type STaskPort struct {
+	pb.UnimplementedTaskReaderServiceServer
+
 	TaskService interface {
 		CreateTask(task *domain.STask) (*domain.STask, error)
 		GetAllTasks() ([]domain.STask, int, error)
@@ -59,7 +62,7 @@ func (s *STaskPort) CreateTask(ctx context.Context, in *pb.CreateTaskReq) (*pb.C
 }
 
 func (s *STaskPort) GetAllTasks(ctx context.Context, in *pb.GetAllTasksReq) (*pb.GetAllTasksRes, error) {
-
+	fmt.Println("go here Get all tasks grpc")
 	getTasks, total_task, err := s.TaskService.GetAllTasks()
 
 	tasks := make([]*pb.Task, 0, len(getTasks))
