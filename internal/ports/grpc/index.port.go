@@ -9,24 +9,20 @@ import (
 
 type Server struct {
 	pb.UnimplementedHealthcheckServer
-	pb.UnimplementedTaskReaderServiceServer
-	pb.UnimplementedTaskWriteServiceServer
-	pb.UnimplementedUserReaderServiceServer
-	pb.UnimplementedUserWriteServiceServer
 }
 
 // NewServer creates a new gRPC server.
 func NewServer(db *pg.DB) *grpc.Server {
 	serverGRPC := grpc.NewServer()
 
-	// userPort := portsRestFulUser.NewUserPort(db)
+	userPort := NewUserPort(db)
 	taskPort := NewTaskPort(db)
 
 	pb.RegisterHealthcheckServer(serverGRPC, &Server{})
 	pb.RegisterTaskReaderServiceServer(serverGRPC, taskPort)
-	// pb.RegisterTaskWriteServiceServer(serverGRPC, &Server{})
-	// pb.RegisterUserReaderServiceServer(serverGRPC, &Server{})
-	// pb.RegisterUserWriteServiceServer(serverGRPC, &Server{})
+	pb.RegisterTaskWriteServiceServer(serverGRPC, taskPort)
+	pb.RegisterUserReaderServiceServer(serverGRPC, userPort)
+	pb.RegisterUserWriteServiceServer(serverGRPC, userPort)
 
 	return serverGRPC
 }

@@ -16,6 +16,7 @@ import (
 
 type STaskPort struct {
 	pb.UnimplementedTaskReaderServiceServer
+	pb.UnimplementedTaskWriteServiceServer
 
 	TaskService interface {
 		CreateTask(task *domain.STask) (*domain.STask, error)

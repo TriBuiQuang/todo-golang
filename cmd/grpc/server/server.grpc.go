@@ -6,25 +6,14 @@ import (
 	"log"
 	"net"
 	portsGRPC "togo/internal/ports/grpc"
-	pb "togo/pkg/grpc"
 
 	"github.com/go-pg/pg/v9"
+	"google.golang.org/grpc/reflection"
 )
 
 var (
 	port = flag.Int("port", 50051, "The server port")
 )
-
-type server struct {
-	pb.UnimplementedHealthcheckServer
-}
-
-// func (s *server) GetPing(ctx context.Context, in *pb.PingRequest) (*pb.PingResponse, error) {
-// 	result := servicesHealthCheck.GetPing()
-// 	timestamp := timestamppb.New(result.Date)
-// 	log.Printf("Received: %v", result)
-// 	return &pb.PingResponse{Url: result.URL, Date: timestamp}, nil
-// }
 
 func ConnectGRPCServer(db *pg.DB) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -34,8 +23,12 @@ func ConnectGRPCServer(db *pg.DB) {
 
 	server := portsGRPC.NewServer(db)
 
+	// reflection use for post man
+	reflection.Register(server)
+
 	log.Printf("server listening at %v", lis.Addr())
 	if err := server.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+
 }

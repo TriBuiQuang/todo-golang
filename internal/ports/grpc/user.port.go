@@ -2,7 +2,9 @@ package portsGRPC
 
 import (
 	"context"
+	"errors"
 	"log"
+	"strings"
 	adapterPostgresRepo "togo/internal/adapter/postgresql/repositories"
 	"togo/internal/core/domain"
 	serviceUsers "togo/internal/core/services/users"
@@ -13,6 +15,9 @@ import (
 )
 
 type SUserPort struct {
+	pb.UnimplementedUserReaderServiceServer
+	pb.UnimplementedUserWriteServiceServer
+
 	UserService interface {
 		CreateUser(user *domain.SUser) (*domain.SUser, error)
 		GetAllUsers() ([]*domain.SUser, int, error)
@@ -36,9 +41,18 @@ func NewUserPort(db *pg.DB) *SUserPort {
 }
 
 func (s *SUserPort) CreateUser(ctx context.Context, in *pb.CreateUserReq) (*pb.CreateUserRes, error) {
+
+	if len(strings.TrimSpace(in.GetUsername())) == 0 {
+		return &pb.CreateUserRes{}, errors.New("this req is missing username")
+	}
+
 	user := &domain.SUser{Username: in.GetUsername(), LimitPerDay: int(in.GetLimitPerDay())}
 
 	newUser, err := s.UserService.CreateUser(user)
+
+	if err != nil {
+		return &pb.CreateUserRes{}, err
+	}
 
 	pbUser := new(pb.User)
 	pbUser.Id = newUser.ID
@@ -73,8 +87,16 @@ func (s *SUserPort) GetAllUsers(ctx context.Context, in *pb.GetAllUsersReq) (*pb
 }
 
 func (s *SUserPort) GetSingleUser(ctx context.Context, in *pb.GetSingleUserReq) (*pb.GetSingleUserRes, error) {
+	if len(strings.TrimSpace(in.GetUserId())) == 0 {
+		return &pb.GetSingleUserRes{}, errors.New("this req is missing user_id")
+	}
+
 	user := &domain.SUser{ID: in.GetUserId()}
 	err := s.UserService.GetSingleUser(user)
+
+	if err != nil {
+		return &pb.GetSingleUserRes{}, err
+	}
 
 	newUser := new(pb.User)
 	newUser.Id = user.ID
