@@ -34,8 +34,8 @@ gen-grpc:
 		--go-grpc_out=pkg/grpc --go-grpc_opt=paths=source_relative\
 		./proto/*.proto
 
-migrate-up:
+migrate-up: 
 	migrate -path migration -database "postgresql://username:123@localhost:5432/test?sslmode=disable" -verbose up
 	
-migrate-down:
+migrate-down: 
 	migrate -path migration -database "postgresql://username:123@localhost:5432/test?sslmode=disable" -verbose down

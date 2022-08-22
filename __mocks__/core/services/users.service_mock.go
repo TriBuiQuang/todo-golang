@@ -17,8 +17,8 @@ type MockUserRepo struct {
 func (m *MockUserRepo) CreateUser(user *domain.SUser) (*domain.SUser, error) {
 	return user, m.Err
 }
-func (m *MockUserRepo) GetAllData() ([]domain.SUser, int, error) {
-	return []domain.SUser{}, -1, m.Err
+func (m *MockUserRepo) GetAllData() ([]*domain.SUser, int, error) {
+	return []*domain.SUser{}, -1, m.Err
 }
 func (m *MockUserRepo) GetSingleData(user *domain.SUser) error {
 	return m.Err
