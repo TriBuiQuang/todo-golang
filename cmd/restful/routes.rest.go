@@ -1,6 +1,7 @@
 package cmdRestFulRoutes
 
 import (
+	"log"
 	adapterPostgres "togo/internal/adapter/postgresql"
 	portsRestFul "togo/internal/ports/restful"
 	portsRestFulTask "togo/internal/ports/restful/tasks"
@@ -14,6 +15,16 @@ type SRoute struct {
 	RouteInterface interface {
 		Routes()
 	}
+}
+
+func ConnectRestFull() {
+	// Init Router
+	router := gin.Default()
+
+	// Route Handlers / Endpoints
+	Routes(router)
+
+	log.Fatal(router.Run("localhost:8080"))
 }
 
 // Only for restful API

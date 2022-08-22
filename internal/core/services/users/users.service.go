@@ -11,7 +11,7 @@ type UserService struct {
 	DB       *pg.DB
 	UserRepo interface {
 		CreateUser(user *domain.SUser) (*domain.SUser, error)
-		GetAllData() ([]domain.SUser, int, error)
+		GetAllData() ([]*domain.SUser, int, error)
 		GetSingleData(user *domain.SUser) error
 		EditData(user *domain.SUser) error
 		DeleteData(user *domain.SUser) error
@@ -26,7 +26,7 @@ func (service *UserService) CreateUser(user *domain.SUser) (*domain.SUser, error
 }
 
 // Bushiness for get all user
-func (service *UserService) GetAllUsers() ([]domain.SUser, int, error) {
+func (service *UserService) GetAllUsers() ([]*domain.SUser, int, error) {
 
 	return service.UserRepo.GetAllData()
 }

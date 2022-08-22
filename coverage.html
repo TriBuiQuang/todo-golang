@@ -334,9 +334,9 @@ func (userRepo SUserRepo) CreateUser(user *domain.SUser) (*domain.SUser, error) 
 }</span>
 
 // Query get all user's data in the database
-func (userRepo SUserRepo) GetAllData() ([]domain.SUser, int, error) <span class="cov0" title="0">{
+func (userRepo SUserRepo) GetAllData() ([]*domain.SUser, int, error) <span class="cov0" title="0">{
 
-        users := []domain.SUser{}
+        users := []*domain.SUser{}
 
         count, err := userRepo.DB.Model(&amp;users).SelectAndCount()
         // count, err := PostgresConnect.Model(users).SelectAndCount()
@@ -529,7 +529,7 @@ type UserService struct {
         DB       *pg.DB
         UserRepo interface {
                 CreateUser(user *domain.SUser) (*domain.SUser, error)
-                GetAllData() ([]domain.SUser, int, error)
+                GetAllData() ([]*domain.SUser, int, error)
                 GetSingleData(user *domain.SUser) error
                 EditData(user *domain.SUser) error
                 DeleteData(user *domain.SUser) error
@@ -544,7 +544,7 @@ func (service *UserService) CreateUser(user *domain.SUser) (*domain.SUser, error
 }</span>
 
 // Bushiness for get all user
-func (service *UserService) GetAllUsers() ([]domain.SUser, int, error) <span class="cov8" title="1">{
+func (service *UserService) GetAllUsers() ([]*domain.SUser, int, error) <span class="cov8" title="1">{
 
         return service.UserRepo.GetAllData()
 }</span>
@@ -775,7 +775,7 @@ import (
 type SUserPort struct {
         UserService interface {
                 CreateUser(user *domain.SUser) (*domain.SUser, error)
-                GetAllUsers() ([]domain.SUser, int, error)
+                GetAllUsers() ([]*domain.SUser, int, error)
                 GetSingleUser(user *domain.SUser) error
                 EditUser(user *domain.SUser) error
                 DeleteUser(user *domain.SUser) error

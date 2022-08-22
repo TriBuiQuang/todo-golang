@@ -38,7 +38,7 @@ func (m *mockUserService) CreateUser(user *domain.SUser) (*domain.SUser, error) 
 	return m.mockCreateUser(user)
 }
 
-func (m *mockUserService) GetAllUsers() ([]domain.SUser, int, error) {
+func (m *mockUserService) GetAllUsers() ([]*domain.SUser, int, error) {
 
 	return nil, -1, m.err
 }

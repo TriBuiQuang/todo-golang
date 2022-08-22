@@ -15,7 +15,7 @@ import (
 type SUserPort struct {
 	UserService interface {
 		CreateUser(user *domain.SUser) (*domain.SUser, error)
-		GetAllUsers() ([]domain.SUser, int, error)
+		GetAllUsers() ([]*domain.SUser, int, error)
 		GetSingleUser(user *domain.SUser) error
 		EditUser(user *domain.SUser) error
 		DeleteUser(user *domain.SUser) error

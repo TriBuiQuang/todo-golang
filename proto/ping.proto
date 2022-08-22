@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package="togo/proto;pb";
+
+package todo;
+
+import "google/protobuf/timestamp.proto";
+
+// Interface exported by the server.
+service Healthcheck {
+   rpc GetPing(pingRequest) returns (pingResponse) {}
+ }
+
+message pingResponse{
+   string url = 1;
+   google.protobuf.Timestamp date = 2  ; 
+}
+
+message pingRequest{}
+ 
